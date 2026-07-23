@@ -47,6 +47,12 @@ export class VocabularyController {
     return this.vocabularyService.findAll({ page, limit, search, part });
   }
 
+  @Get("review-schedule")
+  @UseGuards(SupabaseAuthGuard)
+  findReviewSchedule(@CurrentUser() user: AuthenticatedUser) {
+    return this.vocabularyService.findReviewSchedule(user.id);
+  }
+
   @Get(":slug")
   findOne(@Param("slug") slug: string) {
     return this.vocabularyService.findOne(slug);

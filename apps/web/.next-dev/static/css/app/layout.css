@@ -788,6 +788,12 @@
       border-color: color-mix(in oklab, var(--color-emerald-300) 20%, transparent);
     }
   }
+  .border-white\/8 {
+    border-color: color-mix(in srgb, #fff 8%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--color-white) 8%, transparent);
+    }
+  }
   .border-white\/9 {
     border-color: color-mix(in srgb, #fff 9%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1215,6 +1221,10 @@
     --tw-tracking: 0.12em;
     letter-spacing: 0.12em;
   }
+  .tracking-\[0\.13em\] {
+    --tw-tracking: 0.13em;
+    letter-spacing: 0.13em;
+  }
   .tracking-\[0\.14em\] {
     --tw-tracking: 0.14em;
     letter-spacing: 0.14em;
@@ -1399,6 +1409,12 @@
     color: color-mix(in srgb, #fff 78%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       color: color-mix(in oklab, var(--color-white) 78%, transparent);
+    }
+  }
+  .text-white\/88 {
+    color: color-mix(in srgb, #fff 88%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-white) 88%, transparent);
     }
   }
   .text-white\/90 {
@@ -1821,6 +1837,34 @@
   }
   .focus\:outline-none {
     &:focus {
+      --tw-outline-style: none;
+      outline-style: none;
+    }
+  }
+  .focus-visible\:ring-2 {
+    &:focus-visible {
+      --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+    }
+  }
+  .focus-visible\:ring-\[var\(--accent\)\] {
+    &:focus-visible {
+      --tw-ring-color: var(--accent);
+    }
+  }
+  .focus-visible\:ring-offset-2 {
+    &:focus-visible {
+      --tw-ring-offset-width: 2px;
+      --tw-ring-offset-shadow: var(--tw-ring-inset,) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    }
+  }
+  .focus-visible\:ring-offset-\[\#101617\] {
+    &:focus-visible {
+      --tw-ring-offset-color: #101617;
+    }
+  }
+  .focus-visible\:outline-none {
+    &:focus-visible {
       --tw-outline-style: none;
       outline-style: none;
     }

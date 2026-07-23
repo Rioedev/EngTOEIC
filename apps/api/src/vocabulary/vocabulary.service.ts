@@ -106,6 +106,64 @@ export class VocabularyService {
     };
   }
 
+  async findReviewSchedule(userId: string) {
+    const now = new Date();
+    const scheduledWhere: Prisma.UserTermProgressWhereInput = {
+      userId,
+      nextReviewAt: { not: null },
+      term: { vocabularySet: { isPublished: true } },
+    };
+    const [scheduledCount, dueNowCount, scheduledItems] =
+      await this.prisma.$transaction([
+        this.prisma.userTermProgress.count({ where: scheduledWhere }),
+        this.prisma.userTermProgress.count({
+          where: {
+            ...scheduledWhere,
+            nextReviewAt: { lte: now },
+          },
+        }),
+        this.prisma.userTermProgress.findMany({
+          where: scheduledWhere,
+          orderBy: [{ nextReviewAt: "asc" }, { updatedAt: "asc" }],
+          take: 4,
+          select: {
+            termId: true,
+            status: true,
+            nextReviewAt: true,
+            term: {
+              select: {
+                term: true,
+                meaningVi: true,
+                vocabularySet: {
+                  select: {
+                    slug: true,
+                    title: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ]);
+
+    return {
+      summary: {
+        scheduled: scheduledCount,
+        dueNow: dueNowCount,
+        nextReviewAt: scheduledItems[0]?.nextReviewAt ?? null,
+      },
+      items: scheduledItems.map((item) => ({
+        termId: item.termId,
+        term: item.term.term,
+        meaningVi: item.term.meaningVi,
+        status: item.status,
+        nextReviewAt: item.nextReviewAt,
+        setSlug: item.term.vocabularySet.slug,
+        setTitle: item.term.vocabularySet.title,
+      })),
+    };
+  }
+
   async findProgress(slug: string, userId: string) {
     const vocabularySet = await this.findPublishedSet(slug);
     const checkpointCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -121,6 +179,7 @@ export class VocabularyService {
           status: true,
           reviewCount: true,
           lastReviewedAt: true,
+          nextReviewAt: true,
           updatedAt: true,
         },
       }),
@@ -291,14 +350,19 @@ export class VocabularyService {
       },
       select: { status: true },
     });
-    const status =
+    const correct =
       correctValue === undefined
+        ? undefined
+        : this.parseCorrectResult(correctValue);
+    const status =
+      correct === undefined
         ? this.parseProgressStatus(statusValue)
         : this.nextProgressStatus(
             currentProgress?.status ?? VocabularyProgressStatus.NEW,
-            this.parseCorrectResult(correctValue),
+            correct,
           );
     const now = new Date();
+    const nextReviewAt = this.initialNextReviewAt(status, correct, now);
 
     return this.prisma.userTermProgress.upsert({
       where: {
@@ -313,17 +377,20 @@ export class VocabularyService {
         status,
         reviewCount: 1,
         lastReviewedAt: now,
+        nextReviewAt,
       },
       update: {
         status,
         reviewCount: { increment: 1 },
         lastReviewedAt: now,
+        nextReviewAt,
       },
       select: {
         termId: true,
         status: true,
         reviewCount: true,
         lastReviewedAt: true,
+        nextReviewAt: true,
         updatedAt: true,
       },
     });
@@ -553,6 +620,25 @@ export class VocabularyService {
       return VocabularyProgressStatus.LEARNING;
     }
     return VocabularyProgressStatus.LEARNING;
+  }
+
+  private initialNextReviewAt(
+    status: VocabularyProgressStatus,
+    correct: boolean | undefined,
+    reviewedAt: Date,
+  ) {
+    if (correct === false || status === VocabularyProgressStatus.NEW) {
+      return reviewedAt;
+    }
+
+    const delayDays =
+      status === VocabularyProgressStatus.LEARNING
+        ? 1
+        : status === VocabularyProgressStatus.FAMILIAR
+          ? 3
+          : 7;
+
+    return new Date(reviewedAt.getTime() + delayDays * 24 * 60 * 60 * 1000);
   }
 
   private parseRequiredString(value: unknown, field: string) {

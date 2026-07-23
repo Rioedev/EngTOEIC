@@ -131,12 +131,14 @@ model UserTermProgress {
   status         VocabularyProgressStatus @default(NEW)
   reviewCount    Int                      @default(0)
   lastReviewedAt DateTime?
+  nextReviewAt   DateTime?
   createdAt      DateTime                 @default(now())
   updatedAt      DateTime                 @updatedAt
 
   @@unique([userId, termId])
   @@index([termId])
   @@index([userId, status])
+  @@index([userId, nextReviewAt])
 }
 
 model VocabularyStudySession {

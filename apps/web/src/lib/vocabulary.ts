@@ -45,7 +45,27 @@ export type VocabularyTermProgress = {
   status: VocabularyProgressStatus;
   reviewCount: number;
   lastReviewedAt: string | null;
+  nextReviewAt: string | null;
   updatedAt: string;
+};
+
+export type VocabularyReviewScheduleItem = {
+  termId: string;
+  term: string;
+  meaningVi: string;
+  status: VocabularyProgressStatus;
+  nextReviewAt: string;
+  setSlug: string;
+  setTitle: string;
+};
+
+export type VocabularyReviewScheduleResponse = {
+  summary: {
+    scheduled: number;
+    dueNow: number;
+    nextReviewAt: string | null;
+  };
+  items: VocabularyReviewScheduleItem[];
 };
 
 export type VocabularyStudySession = {
@@ -225,6 +245,27 @@ export async function getVocabularyProgress(slug: string, accessToken: string) {
     }
 
     return (await response.json()) as VocabularyProgressResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function getVocabularyReviewSchedule(accessToken: string) {
+  try {
+    const response = await fetch(
+      `${getApiBaseUrl()}/vocabulary-sets/review-schedule`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: "no-store",
+        signal: AbortSignal.timeout(3500),
+      },
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as VocabularyReviewScheduleResponse;
   } catch {
     return null;
   }

@@ -186,7 +186,7 @@ Tham khảo trải nghiệm: [Quizlet Study Modes](https://quizlet.com/en-gb/fea
 
 #### P1
 
-- [ ] `SRS-001` Lịch ôn theo từng từ và từng người dùng.
+- [x] `SRS-001` Lịch ôn theo từng từ và từng người dùng — lưu `nextReviewAt`, tự khởi tạo lịch sau mỗi lần học và hiển thị tóm tắt lịch cá nhân.
 - [ ] `SRS-002` Rating: Again, Hard, Good, Easy.
 - [ ] `SRS-003` Hàng đợi “Cần ôn hôm nay”.
 - [ ] `SRS-004` Cập nhật interval, ease và nextReviewAt.
