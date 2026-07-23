@@ -70,7 +70,12 @@ export type VocabularyReviewScheduleResponse = {
   summary: {
     scheduled: number;
     dueNow: number;
+    dueNext7Days: number;
     nextReviewAt: string | null;
+    retentionRate: number | null;
+    reviewedTerms: number;
+    totalReviews: number;
+    totalLapses: number;
   };
   items: VocabularyReviewScheduleItem[];
 };

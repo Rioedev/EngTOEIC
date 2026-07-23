@@ -13,6 +13,7 @@ import { AuthService } from "../auth/auth.service";
 import type { AuthenticatedUser } from "../auth/auth.types";
 import { PrismaService } from "../prisma/prisma.service";
 import {
+  calculateRetentionRate,
   calculateSpacedRepetition,
   DEFAULT_EASE_FACTOR,
 } from "./spaced-repetition";
@@ -117,49 +118,84 @@ export class VocabularyService {
 
   async findReviewSchedule(userId: string) {
     const now = new Date();
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     const scheduledWhere: Prisma.UserTermProgressWhereInput = {
       userId,
       nextReviewAt: { not: null },
       term: { vocabularySet: { isPublished: true } },
     };
-    const [scheduledCount, dueNowCount, scheduledItems] =
-      await this.prisma.$transaction([
-        this.prisma.userTermProgress.count({ where: scheduledWhere }),
-        this.prisma.userTermProgress.count({
-          where: {
-            ...scheduledWhere,
-            nextReviewAt: { lte: now },
+    const [
+      scheduledCount,
+      dueNowCount,
+      dueNextSevenDaysCount,
+      progressStats,
+      scheduledItems,
+    ] = await this.prisma.$transaction([
+      this.prisma.userTermProgress.count({ where: scheduledWhere }),
+      this.prisma.userTermProgress.count({
+        where: {
+          ...scheduledWhere,
+          nextReviewAt: { lte: now },
+        },
+      }),
+      this.prisma.userTermProgress.count({
+        where: {
+          ...scheduledWhere,
+          nextReviewAt: {
+            gt: now,
+            lte: sevenDaysFromNow,
           },
-        }),
-        this.prisma.userTermProgress.findMany({
-          where: scheduledWhere,
-          orderBy: [{ nextReviewAt: "asc" }, { updatedAt: "asc" }],
-          take: 4,
-          select: {
-            termId: true,
-            status: true,
-            nextReviewAt: true,
-            term: {
-              select: {
-                term: true,
-                meaningVi: true,
-                vocabularySet: {
-                  select: {
-                    slug: true,
-                    title: true,
-                  },
+        },
+      }),
+      this.prisma.userTermProgress.aggregate({
+        where: {
+          userId,
+          reviewCount: { gt: 0 },
+          term: { vocabularySet: { isPublished: true } },
+        },
+        _count: { _all: true },
+        _sum: {
+          reviewCount: true,
+          lapseCount: true,
+        },
+      }),
+      this.prisma.userTermProgress.findMany({
+        where: scheduledWhere,
+        orderBy: [{ nextReviewAt: "asc" }, { updatedAt: "asc" }],
+        take: 4,
+        select: {
+          termId: true,
+          status: true,
+          nextReviewAt: true,
+          term: {
+            select: {
+              term: true,
+              meaningVi: true,
+              vocabularySet: {
+                select: {
+                  slug: true,
+                  title: true,
                 },
               },
             },
           },
-        }),
-      ]);
+        },
+      }),
+    ]);
+
+    const totalReviews = progressStats._sum.reviewCount ?? 0;
+    const totalLapses = progressStats._sum.lapseCount ?? 0;
 
     return {
       summary: {
         scheduled: scheduledCount,
         dueNow: dueNowCount,
+        dueNext7Days: dueNextSevenDaysCount,
         nextReviewAt: scheduledItems[0]?.nextReviewAt ?? null,
+        retentionRate: calculateRetentionRate(totalReviews, totalLapses),
+        reviewedTerms: progressStats._count._all,
+        totalReviews,
+        totalLapses,
       },
       items: scheduledItems.map((item) => ({
         termId: item.termId,

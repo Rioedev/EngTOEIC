@@ -190,7 +190,7 @@ Tham khảo trải nghiệm: [Quizlet Study Modes](https://quizlet.com/en-gb/fea
 - [x] `SRS-002` Rating: Again, Hard, Good, Easy — chấm sau khi lật Flashcard, hỗ trợ phím `1–4` và lưu mức đánh giá cuối cùng.
 - [x] `SRS-003` Hàng đợi “Cần ôn hôm nay” — trang `/vocabulary/review` lấy tối đa 20 từ đến hạn, chấm rating và cập nhật lịch ngay trong lượt.
 - [x] `SRS-004` Cập nhật interval, ease và nextReviewAt — áp dụng lịch thích ứng theo Again/Hard/Good/Easy, lưu hệ số dễ, chu kỳ, số lần lặp và số lần quên.
-- [ ] `SRS-005` Thống kê retention và số từ đến hạn.
+- [x] `SRS-005` Thống kê retention và số từ đến hạn — tổng hợp tỷ lệ nhớ ước tính từ lượt ôn/lần quên, số từ đến hạn và lịch 7 ngày tới ngay trong thư viện.
 - [ ] `SRS-006` Chống cộng tiến độ sai khi học lặp liên tục.
 
 ### 6.6. Các chế độ luyện từ

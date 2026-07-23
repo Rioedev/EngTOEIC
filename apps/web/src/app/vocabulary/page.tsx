@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  BrainCircuit,
   ArrowRight,
   BookOpenText,
   BriefcaseBusiness,
+  CalendarDays,
   CalendarClock,
   Clock3,
   Layers3,
@@ -174,9 +176,66 @@ export default async function VocabularyPage({
               ) : null}
             </div>
 
+            <dl
+              className="mt-5 grid grid-cols-2 gap-2 border-t border-white/8 pt-5 sm:grid-cols-3"
+              aria-label="Thống kê ghi nhớ"
+            >
+              <div className="col-span-2 rounded-2xl bg-white/6 p-4 sm:col-span-1">
+                <dt className="flex items-center gap-2 text-xs text-white/52">
+                  <BrainCircuit
+                    className="size-4 text-[var(--accent)]"
+                    aria-hidden="true"
+                  />
+                  Retention ước tính
+                </dt>
+                <dd className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-white">
+                  {reviewSchedule.summary.retentionRate === null
+                    ? "—"
+                    : `${reviewSchedule.summary.retentionRate}%`}
+                </dd>
+                <p className="mt-1 text-xs leading-5 text-white/42">
+                  {reviewSchedule.summary.totalReviews > 0
+                    ? `${reviewSchedule.summary.totalReviews} lượt ôn · ${reviewSchedule.summary.totalLapses} lần quên`
+                    : "Chưa đủ lượt ôn để tính"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-white/6 p-4">
+                <dt className="flex items-center gap-2 text-xs text-white/52">
+                  <Clock3
+                    className="size-4 text-amber-200"
+                    aria-hidden="true"
+                  />
+                  Đến hạn
+                </dt>
+                <dd className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-white">
+                  {reviewSchedule.summary.dueNow}
+                </dd>
+                <p className="mt-1 text-xs leading-5 text-white/42">
+                  từ cần ôn ngay
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-white/6 p-4">
+                <dt className="flex items-center gap-2 text-xs text-white/52">
+                  <CalendarDays
+                    className="size-4 text-sky-200"
+                    aria-hidden="true"
+                  />
+                  7 ngày tới
+                </dt>
+                <dd className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-white">
+                  {reviewSchedule.summary.dueNext7Days}
+                </dd>
+                <p className="mt-1 text-xs leading-5 text-white/42">
+                  từ sắp đến lịch
+                </p>
+              </div>
+            </dl>
+
             {reviewSchedule.items.length ? (
               <ul
-                className="mt-5 grid gap-2 border-t border-white/8 pt-5 sm:grid-cols-2"
+                className="mt-5 grid gap-2 sm:grid-cols-2"
                 aria-label="Các từ trong lịch ôn gần nhất"
               >
                 {reviewSchedule.items.map((item) => {

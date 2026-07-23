@@ -41,6 +41,17 @@ function clampInterval(value: number) {
   return clamp(normalizeInteger(value), 0, MAX_INTERVAL_DAYS);
 }
 
+export function calculateRetentionRate(
+  totalReviews: number,
+  totalLapses: number,
+) {
+  const reviews = normalizeInteger(totalReviews);
+  if (reviews === 0) return null;
+
+  const lapses = clamp(normalizeInteger(totalLapses), 0, reviews);
+  return Math.round(((reviews - lapses) / reviews) * 100);
+}
+
 export function calculateSpacedRepetition(
   current: SpacedRepetitionState,
   rating: VocabularyReviewRating,
