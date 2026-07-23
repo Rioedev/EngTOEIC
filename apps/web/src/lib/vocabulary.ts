@@ -55,9 +55,25 @@ export type VocabularyStudySession = {
   updatedAt: string;
 };
 
+export type VocabularyLearnStudyMode =
+  "mixed" | "match" | "dictation" | "multiple-choice" | "write" | "true-false";
+
+export type VocabularyLearnSession = {
+  studyMode: VocabularyLearnStudyMode;
+  targetCount: number;
+  queueTermIds: string[];
+  currentIndex: number;
+  correctCount: number;
+  wrongCount: number;
+  wrongTermIds: string[];
+  lastStudiedAt: string;
+  updatedAt: string;
+};
+
 export type VocabularyProgressResponse = {
   data: VocabularyTermProgress[];
   session: VocabularyStudySession | null;
+  learnSession: VocabularyLearnSession | null;
   summary: {
     new: number;
     known: number;

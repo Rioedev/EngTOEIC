@@ -176,7 +176,7 @@ Tham khảo trải nghiệm: [Quizlet Study Modes](https://quizlet.com/en-gb/fea
 - [x] `LEARN-002` Từ sai xuất hiện thường xuyên hơn — đưa lại vào hàng đợi sau hai câu.
 - [x] `LEARN-003` Mục tiêu học 10/20/toàn bộ từ.
 - [x] `LEARN-004` Trạng thái `NEW`, `LEARNING`, `FAMILIAR`, `MASTERED` — API tự thăng/hạ cấp theo kết quả.
-- [ ] `LEARN-005` Progress checkpoint.
+- [x] `LEARN-005` Progress checkpoint — tự lưu hàng đợi, vị trí, điểm và từ sai; cho phép tiếp tục hoặc bỏ phiên Learn trong 7 ngày.
 - [x] `LEARN-006` Yêu cầu gõ lại câu đúng sau khi trả lời sai.
 - [x] `LEARN-007` Tăng độ khó từ nhận diện sang chủ động nhớ theo trạng thái từng từ.
 - [x] `LEARN-008` Tách chế độ luyện riêng: Learn tổng hợp, Nghe & viết, Trắc nghiệm, Viết từ và Đúng/Sai.

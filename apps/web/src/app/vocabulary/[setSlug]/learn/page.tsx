@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getVocabularyProgress,
   getVocabularySet,
+  type VocabularyLearnSession,
   type VocabularyTermProgress,
 } from "@/lib/vocabulary";
 
@@ -40,6 +41,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
   if (!vocabularySet) notFound();
 
   let initialProgress: VocabularyTermProgress[] = [];
+  let initialLearnSession: VocabularyLearnSession | null = null;
   let progressPersistenceEnabled = false;
 
   if (source === "api" && isSupabaseConfigured()) {
@@ -55,6 +57,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
         session.access_token,
       );
       initialProgress = progress?.data ?? [];
+      initialLearnSession = progress?.learnSession ?? null;
     }
   }
 
@@ -95,6 +98,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
           terms={vocabularySet.terms ?? []}
           setSlug={vocabularySet.slug}
           initialProgress={initialProgress}
+          initialLearnSession={initialLearnSession}
           progressPersistenceEnabled={progressPersistenceEnabled}
         />
       </div>

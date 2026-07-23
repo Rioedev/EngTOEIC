@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -20,6 +21,16 @@ type UpdateTermProgressBody = {
 type UpdateStudySessionBody = {
   currentTermId?: unknown;
   currentIndex?: unknown;
+};
+
+type UpdateLearnSessionBody = {
+  studyMode?: unknown;
+  targetCount?: unknown;
+  queueTermIds?: unknown;
+  currentIndex?: unknown;
+  correctCount?: unknown;
+  wrongCount?: unknown;
+  wrongTermIds?: unknown;
 };
 
 @Controller("vocabulary-sets")
@@ -63,6 +74,25 @@ export class VocabularyController {
       body.currentIndex,
       user,
     );
+  }
+
+  @Patch(":slug/learn-session")
+  @UseGuards(SupabaseAuthGuard)
+  updateLearnSession(
+    @Param("slug") slug: string,
+    @Body() body: UpdateLearnSessionBody,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.vocabularyService.updateLearnSession(slug, body, user);
+  }
+
+  @Delete(":slug/learn-session")
+  @UseGuards(SupabaseAuthGuard)
+  clearLearnSession(
+    @Param("slug") slug: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.vocabularyService.clearLearnSession(slug, user);
   }
 
   @Patch(":slug/terms/:termId/progress")

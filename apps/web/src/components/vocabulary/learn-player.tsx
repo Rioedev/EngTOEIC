@@ -4,6 +4,7 @@ import {
   Check,
   CheckCircle2,
   CircleHelp,
+  Clock3,
   Grid3X3,
   Headphones,
   Keyboard,
@@ -14,25 +15,38 @@ import {
   Volume2,
   X,
 } from "lucide-react";
-import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type {
+  VocabularyLearnSession,
+  VocabularyLearnStudyMode,
   VocabularyProgressStatus,
   VocabularyTerm,
   VocabularyTermProgress,
 } from "@/lib/vocabulary";
-import { recordVocabularyTermAnswer } from "@/lib/vocabulary-progress-client";
+import {
+  clearVocabularyLearnSession,
+  recordVocabularyTermAnswer,
+  saveVocabularyLearnSession,
+} from "@/lib/vocabulary-progress-client";
 
 type LearnPlayerProps = {
   terms: VocabularyTerm[];
   setSlug: string;
   initialProgress: VocabularyTermProgress[];
+  initialLearnSession: VocabularyLearnSession | null;
   progressPersistenceEnabled: boolean;
 };
 
 type QuestionMode =
   "multiple-choice" | "write" | "listen" | "dictation" | "true-false";
-type StudyMode =
-  "mixed" | "match" | "dictation" | "multiple-choice" | "write" | "true-false";
+type StudyMode = VocabularyLearnStudyMode;
 type SaveState = "idle" | "saving" | "saved" | "error";
 type Feedback = {
   correct: boolean;
@@ -477,6 +491,7 @@ export function LearnPlayer({
   terms,
   setSlug,
   initialProgress,
+  initialLearnSession,
   progressPersistenceEnabled,
 }: LearnPlayerProps) {
   const orderedTerms = useMemo(
@@ -489,6 +504,23 @@ export function LearnPlayer({
         initialProgress.map((item) => [item.termId, item.status]),
       ),
   );
+  const [resumeCheckpoint, setResumeCheckpoint] =
+    useState<VocabularyLearnSession | null>(() => {
+      if (
+        !initialLearnSession ||
+        initialLearnSession.studyMode === "match" ||
+        initialLearnSession.currentIndex >=
+          initialLearnSession.queueTermIds.length
+      ) {
+        return null;
+      }
+      const availableTermIds = new Set(orderedTerms.map((term) => term.id));
+      return initialLearnSession.queueTermIds.every((termId) =>
+        availableTermIds.has(termId),
+      )
+        ? initialLearnSession
+        : null;
+    });
   const targetOptions = useMemo(
     () =>
       Array.from(new Set([10, 20, orderedTerms.length])).filter(
@@ -511,13 +543,27 @@ export function LearnPlayer({
   const [wrongCount, setWrongCount] = useState(0);
   const [wrongTermIds, setWrongTermIds] = useState<Set<string>>(new Set());
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [checkpointState, setCheckpointState] = useState<SaveState>(() =>
+    resumeCheckpoint ? "saved" : "idle",
+  );
   const [announcement, setAnnouncement] = useState("");
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const pendingSaves = useRef(0);
   const saveFailed = useRef(false);
+  const checkpointQueue = useRef<Promise<void>>(Promise.resolve());
+  const pendingCheckpointSaves = useRef(0);
+  const checkpointFailed = useRef(false);
 
   const currentTerm = queue[currentIndex];
   const completed = started && currentIndex >= queue.length;
+  const combinedSaveState: SaveState =
+    saveState === "error" || checkpointState === "error"
+      ? "error"
+      : saveState === "saving" || checkpointState === "saving"
+        ? "saving"
+        : saveState === "saved" || checkpointState === "saved"
+          ? "saved"
+          : "idle";
   const currentProgressStatus = currentTerm
     ? (progressByTerm.get(currentTerm.id) ?? "NEW")
     : "NEW";
@@ -595,6 +641,133 @@ export function LearnPlayer({
     [progressPersistenceEnabled, setSlug],
   );
 
+  const enqueueCheckpointOperation = useCallback(
+    (operation: () => Promise<unknown>, failureMessage: string) => {
+      if (pendingCheckpointSaves.current === 0) {
+        checkpointFailed.current = false;
+      }
+      pendingCheckpointSaves.current += 1;
+      setCheckpointState("saving");
+
+      const task = checkpointQueue.current.then(operation);
+      checkpointQueue.current = task.then(
+        () => undefined,
+        () => undefined,
+      );
+
+      void task
+        .catch(() => {
+          checkpointFailed.current = true;
+          setAnnouncement(failureMessage);
+        })
+        .finally(() => {
+          pendingCheckpointSaves.current -= 1;
+          if (pendingCheckpointSaves.current === 0) {
+            setCheckpointState(checkpointFailed.current ? "error" : "saved");
+          }
+        });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (
+      !progressPersistenceEnabled ||
+      !started ||
+      studyMode === "match" ||
+      queue.length === 0
+    ) {
+      return;
+    }
+
+    const checkpointMode = studyMode;
+    const checkpointIndex =
+      feedback && (feedback.correct || correctionAccepted)
+        ? currentIndex + 1
+        : currentIndex;
+    const timeoutId = window.setTimeout(() => {
+      if (checkpointIndex >= queue.length) {
+        enqueueCheckpointOperation(
+          () => clearVocabularyLearnSession(setSlug),
+          "Chưa thể đóng checkpoint đã hoàn thành.",
+        );
+        return;
+      }
+
+      enqueueCheckpointOperation(
+        () =>
+          saveVocabularyLearnSession(setSlug, {
+            studyMode: checkpointMode,
+            targetCount,
+            queueTermIds: queue.map((term) => term.id),
+            currentIndex: checkpointIndex,
+            correctCount,
+            wrongCount,
+            wrongTermIds: [...wrongTermIds],
+          }),
+        "Chưa thể lưu checkpoint Learn. Tiến độ trả lời vẫn được giữ.",
+      );
+    }, 450);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    correctCount,
+    correctionAccepted,
+    currentIndex,
+    enqueueCheckpointOperation,
+    feedback,
+    progressPersistenceEnabled,
+    queue,
+    setSlug,
+    started,
+    studyMode,
+    targetCount,
+    wrongCount,
+    wrongTermIds,
+  ]);
+
+  const resumeLearnCheckpoint = useCallback(() => {
+    if (!resumeCheckpoint) return;
+    const termsById = new Map(orderedTerms.map((term) => [term.id, term]));
+    const restoredQueue = resumeCheckpoint.queueTermIds
+      .map((termId) => termsById.get(termId))
+      .filter((term): term is VocabularyTerm => Boolean(term));
+    if (
+      restoredQueue.length !== resumeCheckpoint.queueTermIds.length ||
+      resumeCheckpoint.currentIndex >= restoredQueue.length
+    ) {
+      setResumeCheckpoint(null);
+      setAnnouncement("Checkpoint cũ không còn hợp lệ và đã được bỏ qua.");
+      return;
+    }
+
+    setStudyMode(resumeCheckpoint.studyMode);
+    setTargetCount(resumeCheckpoint.targetCount);
+    setQueue(restoredQueue);
+    setCurrentIndex(resumeCheckpoint.currentIndex);
+    setCorrectCount(resumeCheckpoint.correctCount);
+    setWrongCount(resumeCheckpoint.wrongCount);
+    setWrongTermIds(new Set(resumeCheckpoint.wrongTermIds));
+    setFeedback(null);
+    setWrittenAnswer("");
+    setCorrection("");
+    setCorrectionAccepted(false);
+    setResumeCheckpoint(null);
+    setStarted(true);
+    setAnnouncement(
+      `Đã tiếp tục từ câu ${resumeCheckpoint.currentIndex + 1} trên ${restoredQueue.length}.`,
+    );
+  }, [orderedTerms, resumeCheckpoint]);
+
+  const discardLearnCheckpoint = useCallback(() => {
+    setResumeCheckpoint(null);
+    if (!progressPersistenceEnabled) return;
+    enqueueCheckpointOperation(
+      () => clearVocabularyLearnSession(setSlug),
+      "Chưa thể xóa checkpoint Learn cũ.",
+    );
+  }, [enqueueCheckpointOperation, progressPersistenceEnabled, setSlug]);
+
   const startSession = useCallback(() => {
     const prioritizedTerms = shuffle(orderedTerms).sort(
       (first, second) =>
@@ -610,6 +783,7 @@ export function LearnPlayer({
     setCorrectCount(0);
     setWrongCount(0);
     setWrongTermIds(new Set());
+    setResumeCheckpoint(null);
     setStarted(true);
     setAnnouncement(
       `Đã bắt đầu chế độ ${studyModeMeta[studyMode].label} với ${targetCount} từ.`,
@@ -741,6 +915,55 @@ export function LearnPlayer({
             </p>
           </div>
         </div>
+
+        {resumeCheckpoint ? (
+          <section
+            className="mt-7 rounded-2xl border border-[color-mix(in_srgb,var(--accent)_32%,transparent)] bg-[var(--accent-soft)] p-4 sm:p-5"
+            aria-labelledby="resume-learn-title"
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="grid size-10 flex-none place-items-center rounded-xl bg-white/10 text-[var(--accent)]">
+                  <Clock3 className="size-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold text-[var(--accent)]">
+                    Checkpoint tự động
+                  </p>
+                  <h2
+                    id="resume-learn-title"
+                    className="mt-1 text-lg font-bold"
+                  >
+                    Tiếp tục phiên{" "}
+                    {studyModeMeta[resumeCheckpoint.studyMode].label}
+                  </h2>
+                  <p className="mt-1.5 text-xs leading-5 text-white/52">
+                    Câu {resumeCheckpoint.currentIndex + 1}/
+                    {resumeCheckpoint.queueTermIds.length} ·{" "}
+                    {resumeCheckpoint.correctCount} đúng ·{" "}
+                    {resumeCheckpoint.wrongCount} sai
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  className="min-h-11 rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-[var(--accent-ink)]"
+                  onClick={resumeLearnCheckpoint}
+                >
+                  Tiếp tục phiên trước
+                </button>
+                <button
+                  type="button"
+                  className="min-h-11 rounded-full bg-white/8 px-5 text-sm font-semibold text-white/66 hover:bg-white/13 hover:text-white"
+                  onClick={discardLearnCheckpoint}
+                >
+                  Bỏ phiên cũ
+                </button>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <fieldset className="mt-8">
           <legend className="text-sm font-black text-white/78">
@@ -960,16 +1183,16 @@ export function LearnPlayer({
             Sai {wrongCount}
           </span>
           <span
-            className={`rounded-full px-3 py-2 ${saveState === "error" ? "bg-red-300/12 text-red-100" : "bg-white/7 text-white/55"}`}
+            className={`rounded-full px-3 py-2 ${combinedSaveState === "error" ? "bg-red-300/12 text-red-100" : "bg-white/7 text-white/55"}`}
             role="status"
             aria-live="polite"
           >
             {progressPersistenceEnabled
-              ? saveState === "saving"
+              ? combinedSaveState === "saving"
                 ? "Đang lưu…"
-                : saveState === "error"
+                : combinedSaveState === "error"
                   ? "Chưa đồng bộ"
-                  : saveState === "saved"
+                  : combinedSaveState === "saved"
                     ? "Đã đồng bộ"
                     : "Tự động lưu"
               : "Chỉ lưu trong phiên"}

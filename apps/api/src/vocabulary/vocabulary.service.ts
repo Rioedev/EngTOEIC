@@ -15,6 +15,15 @@ type VocabularyListQuery = {
   part?: string;
 };
 
+const learnStudyModes = new Set([
+  "mixed",
+  "match",
+  "dictation",
+  "multiple-choice",
+  "write",
+  "true-false",
+]);
+
 @Injectable()
 export class VocabularyService {
   constructor(
@@ -99,7 +108,8 @@ export class VocabularyService {
 
   async findProgress(slug: string, userId: string) {
     const vocabularySet = await this.findPublishedSet(slug);
-    const [progress, session] = await this.prisma.$transaction([
+    const checkpointCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const [progress, session, learnSession] = await this.prisma.$transaction([
       this.prisma.userTermProgress.findMany({
         where: {
           userId,
@@ -128,11 +138,30 @@ export class VocabularyService {
           updatedAt: true,
         },
       }),
+      this.prisma.vocabularyLearnSession.findFirst({
+        where: {
+          userId,
+          vocabularySetId: vocabularySet.id,
+          lastStudiedAt: { gte: checkpointCutoff },
+        },
+        select: {
+          studyMode: true,
+          targetCount: true,
+          queueTermIds: true,
+          currentIndex: true,
+          correctCount: true,
+          wrongCount: true,
+          wrongTermIds: true,
+          lastStudiedAt: true,
+          updatedAt: true,
+        },
+      }),
     ]);
 
     return {
       data: progress,
       session,
+      learnSession,
       summary: {
         new:
           vocabularySet._count.terms -
@@ -300,6 +329,146 @@ export class VocabularyService {
     });
   }
 
+  async updateLearnSession(
+    slug: string,
+    values: {
+      studyMode?: unknown;
+      targetCount?: unknown;
+      queueTermIds?: unknown;
+      currentIndex?: unknown;
+      correctCount?: unknown;
+      wrongCount?: unknown;
+      wrongTermIds?: unknown;
+    },
+    user: AuthenticatedUser,
+  ) {
+    const vocabularySet = await this.findPublishedSet(slug);
+    const studyMode = this.parseLearnStudyMode(values.studyMode);
+    const targetCount = this.parsePositiveNumber(
+      values.targetCount,
+      "targetCount",
+    );
+    const queueTermIds = this.parseStringArray(
+      values.queueTermIds,
+      "queueTermIds",
+      false,
+    );
+    const currentIndex = this.parseNonNegativeInteger(
+      values.currentIndex,
+      "currentIndex",
+    );
+    const correctCount = this.parseNonNegativeInteger(
+      values.correctCount,
+      "correctCount",
+    );
+    const wrongCount = this.parseNonNegativeInteger(
+      values.wrongCount,
+      "wrongCount",
+    );
+    const wrongTermIds = this.parseStringArray(
+      values.wrongTermIds,
+      "wrongTermIds",
+      true,
+    );
+
+    if (studyMode === "match") {
+      throw new BadRequestException(
+        "Match sessions are round-based and do not support checkpoints.",
+      );
+    }
+    if (targetCount > vocabularySet._count.terms) {
+      throw new BadRequestException(
+        `targetCount must not exceed ${vocabularySet._count.terms}.`,
+      );
+    }
+    if (queueTermIds.length > 500) {
+      throw new BadRequestException(
+        "queueTermIds must contain at most 500 items.",
+      );
+    }
+    if (currentIndex >= queueTermIds.length) {
+      throw new BadRequestException(
+        "currentIndex must point to an item inside queueTermIds.",
+      );
+    }
+
+    const uniqueQueueTermIds = [...new Set(queueTermIds)];
+    const validTermCount = await this.prisma.vocabularyTerm.count({
+      where: {
+        id: { in: uniqueQueueTermIds },
+        vocabularySetId: vocabularySet.id,
+      },
+    });
+    if (validTermCount !== uniqueQueueTermIds.length) {
+      throw new BadRequestException(
+        "Every queueTermId must belong to the selected vocabulary set.",
+      );
+    }
+
+    const queueTermIdSet = new Set(uniqueQueueTermIds);
+    if (wrongTermIds.some((termId) => !queueTermIdSet.has(termId))) {
+      throw new BadRequestException(
+        "Every wrongTermId must also exist in queueTermIds.",
+      );
+    }
+
+    await this.authService.syncUser(user);
+    const now = new Date();
+    return this.prisma.vocabularyLearnSession.upsert({
+      where: {
+        userId_vocabularySetId: {
+          userId: user.id,
+          vocabularySetId: vocabularySet.id,
+        },
+      },
+      create: {
+        userId: user.id,
+        vocabularySetId: vocabularySet.id,
+        studyMode,
+        targetCount,
+        queueTermIds,
+        currentIndex,
+        correctCount,
+        wrongCount,
+        wrongTermIds: [...new Set(wrongTermIds)],
+        lastStudiedAt: now,
+      },
+      update: {
+        studyMode,
+        targetCount,
+        queueTermIds,
+        currentIndex,
+        correctCount,
+        wrongCount,
+        wrongTermIds: [...new Set(wrongTermIds)],
+        lastStudiedAt: now,
+      },
+      select: {
+        studyMode: true,
+        targetCount: true,
+        queueTermIds: true,
+        currentIndex: true,
+        correctCount: true,
+        wrongCount: true,
+        wrongTermIds: true,
+        lastStudiedAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async clearLearnSession(slug: string, user: AuthenticatedUser) {
+    const vocabularySet = await this.findPublishedSet(slug);
+    const result = await this.prisma.vocabularyLearnSession.deleteMany({
+      where: {
+        userId: user.id,
+        vocabularySetId: vocabularySet.id,
+      },
+    });
+
+    return { cleared: result.count > 0 };
+  }
+
   private async findPublishedSet(slug: string) {
     const vocabularySet = await this.prisma.vocabularySet.findFirst({
       where: { slug, isPublished: true },
@@ -332,6 +501,35 @@ export class VocabularyService {
     }
 
     return value;
+  }
+
+  private parseLearnStudyMode(value: unknown) {
+    if (typeof value !== "string" || !learnStudyModes.has(value)) {
+      throw new BadRequestException(
+        `studyMode must be one of: ${[...learnStudyModes].join(", ")}.`,
+      );
+    }
+    return value;
+  }
+
+  private parseStringArray(value: unknown, field: string, allowEmpty: boolean) {
+    if (
+      !Array.isArray(value) ||
+      (!allowEmpty && value.length === 0) ||
+      value.some((item) => typeof item !== "string" || !item.trim())
+    ) {
+      throw new BadRequestException(
+        `${field} must be ${allowEmpty ? "an" : "a non-empty"} array of strings.`,
+      );
+    }
+    return value.map((item) => (item as string).trim());
+  }
+
+  private parsePositiveNumber(value: unknown, field: string) {
+    if (!Number.isInteger(value) || (value as number) < 1) {
+      throw new BadRequestException(`${field} must be a positive integer.`);
+    }
+    return value as number;
   }
 
   private nextProgressStatus(

@@ -761,6 +761,12 @@
       border-color: color-mix(in srgb,var(--accent) 28%,transparent);
     }
   }
+  .border-\[color-mix\(in_srgb\,var\(--accent\)_32\%\,transparent\)\] {
+    border-color: var(--accent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb,var(--accent) 32%,transparent);
+    }
+  }
   .border-\[color-mix\(in_srgb\,var\(--accent\)_35\%\,transparent\)\] {
     border-color: var(--accent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1359,6 +1365,12 @@
       color: color-mix(in oklab, var(--color-white) 65%, transparent);
     }
   }
+  .text-white\/66 {
+    color: color-mix(in srgb, #fff 66%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-white) 66%, transparent);
+    }
+  }
   .text-white\/68 {
     color: color-mix(in srgb, #fff 68%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1672,6 +1684,16 @@
       }
     }
   }
+  .hover\:bg-white\/13 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(in srgb, #fff 13%, transparent);
+        @supports (color: color-mix(in lab, red, red)) {
+          background-color: color-mix(in oklab, var(--color-white) 13%, transparent);
+        }
+      }
+    }
+  }
   .hover\:bg-white\/14 {
     &:hover {
       @media (hover: hover) {
@@ -1894,6 +1916,11 @@
   .sm\:p-4 {
     @media (width >= 40rem) {
       padding: calc(var(--spacing) * 4);
+    }
+  }
+  .sm\:p-5 {
+    @media (width >= 40rem) {
+      padding: calc(var(--spacing) * 5);
     }
   }
   .sm\:p-6 {

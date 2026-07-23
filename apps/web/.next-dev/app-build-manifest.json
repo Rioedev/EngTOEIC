@@ -25,6 +25,21 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/vocabulary/page.js"
+    ],
+    "/vocabulary/[setSlug]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/vocabulary/[setSlug]/page.js"
+    ],
+    "/vocabulary/[setSlug]/learn/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/vocabulary/[setSlug]/learn/page.js"
+    ],
+    "/vocabulary/[setSlug]/flashcards/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/vocabulary/[setSlug]/flashcards/page.js"
     ]
   }
 }

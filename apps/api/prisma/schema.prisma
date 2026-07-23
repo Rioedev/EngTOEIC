@@ -44,17 +44,18 @@ enum VocabularyProgressStatus {
 }
 
 model User {
-  id                  String                   @id @db.Uuid
-  email               String                   @unique
-  displayName         String?
-  avatarUrl           String?
-  role                UserRole                 @default(LEARNER)
-  attempts            TestAttempt[]
-  savedVocabularySets SavedVocabularySet[]
-  termProgress        UserTermProgress[]
-  vocabularySessions  VocabularyStudySession[]
-  createdAt           DateTime                 @default(now())
-  updatedAt           DateTime                 @updatedAt
+  id                      String                   @id @db.Uuid
+  email                   String                   @unique
+  displayName             String?
+  avatarUrl               String?
+  role                    UserRole                 @default(LEARNER)
+  attempts                TestAttempt[]
+  savedVocabularySets     SavedVocabularySet[]
+  termProgress            UserTermProgress[]
+  vocabularySessions      VocabularyStudySession[]
+  vocabularyLearnSessions VocabularyLearnSession[]
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
 }
 
 model VocabularySet {
@@ -71,6 +72,7 @@ model VocabularySet {
   terms         VocabularyTerm[]
   savedBy       SavedVocabularySet[]
   studySessions VocabularyStudySession[]
+  learnSessions VocabularyLearnSession[]
   createdAt     DateTime                 @default(now())
   updatedAt     DateTime                 @updatedAt
 
@@ -153,6 +155,28 @@ model VocabularyStudySession {
   @@unique([userId, vocabularySetId])
   @@index([vocabularySetId])
   @@index([currentTermId])
+  @@index([userId, lastStudiedAt])
+}
+
+model VocabularyLearnSession {
+  id              String        @id @default(cuid())
+  userId          String        @db.Uuid
+  vocabularySetId String
+  studyMode       String
+  targetCount     Int
+  queueTermIds    String[]
+  currentIndex    Int           @default(0)
+  correctCount    Int           @default(0)
+  wrongCount      Int           @default(0)
+  wrongTermIds    String[]      @default([])
+  lastStudiedAt   DateTime      @default(now())
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabularySet   VocabularySet @relation(fields: [vocabularySetId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([userId, vocabularySetId])
+  @@index([vocabularySetId])
   @@index([userId, lastStudiedAt])
 }
 

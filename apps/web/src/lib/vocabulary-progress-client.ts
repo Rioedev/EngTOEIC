@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import type {
+  VocabularyLearnSession,
+  VocabularyLearnStudyMode,
   VocabularyProgressResponse,
   VocabularyProgressStatus,
   VocabularyStudySession,
@@ -125,4 +127,53 @@ export async function saveVocabularyStudySession(
   }
 
   return (await response.json()) as VocabularyStudySession;
+}
+
+export async function saveVocabularyLearnSession(
+  setSlug: string,
+  checkpoint: {
+    studyMode: Exclude<VocabularyLearnStudyMode, "match">;
+    targetCount: number;
+    queueTermIds: string[];
+    currentIndex: number;
+    correctCount: number;
+    wrongCount: number;
+    wrongTermIds: string[];
+  },
+) {
+  const accessToken = await getAccessToken();
+  const response = await fetch(
+    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/learn-session`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(checkpoint),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Không thể lưu checkpoint Learn (${response.status}).`);
+  }
+
+  return (await response.json()) as VocabularyLearnSession;
+}
+
+export async function clearVocabularyLearnSession(setSlug: string) {
+  const accessToken = await getAccessToken();
+  const response = await fetch(
+    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/learn-session`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Không thể xóa checkpoint Learn (${response.status}).`);
+  }
+
+  return (await response.json()) as { cleared: boolean };
 }
