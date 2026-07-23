@@ -54,6 +54,8 @@ export type VocabularyTermProgress = {
   lastReviewedAt: string | null;
   nextReviewAt: string | null;
   updatedAt: string;
+  reviewAccepted?: boolean;
+  nextEligibleAt?: string | null;
 };
 
 export type VocabularyReviewScheduleItem = {

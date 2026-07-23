@@ -191,7 +191,7 @@ Tham khảo trải nghiệm: [Quizlet Study Modes](https://quizlet.com/en-gb/fea
 - [x] `SRS-003` Hàng đợi “Cần ôn hôm nay” — trang `/vocabulary/review` lấy tối đa 20 từ đến hạn, chấm rating và cập nhật lịch ngay trong lượt.
 - [x] `SRS-004` Cập nhật interval, ease và nextReviewAt — áp dụng lịch thích ứng theo Again/Hard/Good/Easy, lưu hệ số dễ, chu kỳ, số lần lặp và số lần quên.
 - [x] `SRS-005` Thống kê retention và số từ đến hạn — tổng hợp tỷ lệ nhớ ước tính từ lượt ôn/lần quên, số từ đến hạn và lịch 7 ngày tới ngay trong thư viện.
-- [ ] `SRS-006` Chống cộng tiến độ sai khi học lặp liên tục.
+- [x] `SRS-006` Chống cộng tiến độ sai khi học lặp liên tục — chỉ nhận một lượt SRS khi từ đã đến hạn, khóa giao dịch tuần tự và báo rõ các lượt học sớm không được cộng thêm.
 
 ### 6.6. Các chế độ luyện từ
 

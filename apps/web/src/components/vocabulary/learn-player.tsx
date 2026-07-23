@@ -624,6 +624,11 @@ export function LearnPlayer({
             next.set(termId, savedProgress.status);
             return next;
           });
+          if (!savedProgress.reviewAccepted) {
+            setAnnouncement(
+              "Từ này đã có lịch ôn. Kết quả vẫn tính trong phiên Learn nhưng không cộng thêm tiến độ SRS.",
+            );
+          }
         })
         .catch(() => {
           saveFailed.current = true;

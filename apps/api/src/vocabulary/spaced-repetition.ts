@@ -52,6 +52,12 @@ export function calculateRetentionRate(
   return Math.round(((reviews - lapses) / reviews) * 100);
 }
 
+export function isReviewEligible(nextReviewAt: Date | null, reviewedAt: Date) {
+  return (
+    nextReviewAt === null || nextReviewAt.getTime() <= reviewedAt.getTime()
+  );
+}
+
 export function calculateSpacedRepetition(
   current: SpacedRepetitionState,
   rating: VocabularyReviewRating,

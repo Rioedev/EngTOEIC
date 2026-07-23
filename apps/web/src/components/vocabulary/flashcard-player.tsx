@@ -290,6 +290,12 @@ export function FlashcardPlayer({
       if (!progressPersistenceEnabled) return;
       enqueueSave(async () => {
         const savedProgress = await rateVocabularyTerm(setSlug, termId, rating);
+        if (!savedProgress.reviewAccepted) {
+          setAnnouncement(
+            `${termLabel} đã có lịch ôn. Lượt học sớm này không cộng thêm tiến độ SRS.`,
+          );
+          return;
+        }
         setAnnouncement(
           `${termLabel}: ${ratingMeta[rating].label}, ${describeReviewSchedule(savedProgress.intervalDays)}.`,
         );

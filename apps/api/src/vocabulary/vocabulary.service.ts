@@ -16,6 +16,7 @@ import {
   calculateRetentionRate,
   calculateSpacedRepetition,
   DEFAULT_EASE_FACTOR,
+  isReviewEligible,
 } from "./spaced-repetition";
 
 type VocabularyListQuery = {
@@ -476,22 +477,6 @@ export class VocabularyService {
       );
     }
 
-    await this.authService.syncUser(user);
-    const currentProgress = await this.prisma.userTermProgress.findUnique({
-      where: {
-        userId_termId: {
-          userId: user.id,
-          termId: term.id,
-        },
-      },
-      select: {
-        status: true,
-        easeFactor: true,
-        intervalDays: true,
-        repetitionCount: true,
-        lapseCount: true,
-      },
-    });
     const submittedResultCount = [
       statusValue,
       correctValue,
@@ -511,82 +496,145 @@ export class VocabularyService {
       correctValue === undefined
         ? undefined
         : this.parseCorrectResult(correctValue);
-    const status =
-      rating !== undefined
-        ? this.nextProgressStatusForRating(
-            currentProgress?.status ?? VocabularyProgressStatus.NEW,
-            rating,
-          )
-        : correct === undefined
-          ? this.parseProgressStatus(statusValue)
-          : this.nextProgressStatus(
-              currentProgress?.status ?? VocabularyProgressStatus.NEW,
-              correct,
-            );
-    const now = new Date();
-    const schedulingRating =
-      rating ??
-      (correct !== undefined
-        ? correct
-          ? VocabularyReviewRating.GOOD
-          : VocabularyReviewRating.AGAIN
-        : this.reviewRatingForStatus(status));
-    const schedule = calculateSpacedRepetition(
-      {
-        easeFactor: currentProgress?.easeFactor ?? DEFAULT_EASE_FACTOR,
-        intervalDays: currentProgress?.intervalDays ?? 0,
-        repetitionCount: currentProgress?.repetitionCount ?? 0,
-        lapseCount: currentProgress?.lapseCount ?? 0,
-      },
-      schedulingRating,
-      now,
-    );
+    const requestedStatus =
+      rating === undefined && correct === undefined
+        ? this.parseProgressStatus(statusValue)
+        : undefined;
 
-    return this.prisma.userTermProgress.upsert({
-      where: {
-        userId_termId: {
-          userId: user.id,
-          termId: term.id,
-        },
-      },
-      create: {
-        userId: user.id,
-        termId: term.id,
-        status,
-        lastRating: rating,
-        easeFactor: schedule.easeFactor,
-        intervalDays: schedule.intervalDays,
-        repetitionCount: schedule.repetitionCount,
-        lapseCount: schedule.lapseCount,
-        reviewCount: 1,
-        lastReviewedAt: now,
-        nextReviewAt: schedule.nextReviewAt,
-      },
-      update: {
-        status,
-        ...(rating ? { lastRating: rating } : {}),
-        easeFactor: schedule.easeFactor,
-        intervalDays: schedule.intervalDays,
-        repetitionCount: schedule.repetitionCount,
-        lapseCount: schedule.lapseCount,
-        reviewCount: { increment: 1 },
-        lastReviewedAt: now,
-        nextReviewAt: schedule.nextReviewAt,
-      },
-      select: {
-        termId: true,
-        status: true,
-        lastRating: true,
-        easeFactor: true,
-        intervalDays: true,
-        repetitionCount: true,
-        lapseCount: true,
-        reviewCount: true,
-        lastReviewedAt: true,
-        nextReviewAt: true,
-        updatedAt: true,
-      },
-    });
+    await this.authService.syncUser(user);
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        return await this.prisma.$transaction(
+          async (transaction) => {
+            const now = new Date();
+            const currentProgress =
+              await transaction.userTermProgress.findUnique({
+                where: {
+                  userId_termId: {
+                    userId: user.id,
+                    termId: term.id,
+                  },
+                },
+                select: {
+                  termId: true,
+                  status: true,
+                  lastRating: true,
+                  easeFactor: true,
+                  intervalDays: true,
+                  repetitionCount: true,
+                  lapseCount: true,
+                  reviewCount: true,
+                  lastReviewedAt: true,
+                  nextReviewAt: true,
+                  updatedAt: true,
+                },
+              });
+
+            if (
+              currentProgress &&
+              !isReviewEligible(currentProgress.nextReviewAt, now)
+            ) {
+              return {
+                ...currentProgress,
+                reviewAccepted: false,
+                nextEligibleAt: currentProgress.nextReviewAt,
+              };
+            }
+
+            const currentStatus =
+              currentProgress?.status ?? VocabularyProgressStatus.NEW;
+            const status =
+              rating !== undefined
+                ? this.nextProgressStatusForRating(currentStatus, rating)
+                : correct !== undefined
+                  ? this.nextProgressStatus(currentStatus, correct)
+                  : requestedStatus!;
+            const schedulingRating =
+              rating ??
+              (correct !== undefined
+                ? correct
+                  ? VocabularyReviewRating.GOOD
+                  : VocabularyReviewRating.AGAIN
+                : this.reviewRatingForStatus(status));
+            const schedule = calculateSpacedRepetition(
+              {
+                easeFactor: currentProgress?.easeFactor ?? DEFAULT_EASE_FACTOR,
+                intervalDays: currentProgress?.intervalDays ?? 0,
+                repetitionCount: currentProgress?.repetitionCount ?? 0,
+                lapseCount: currentProgress?.lapseCount ?? 0,
+              },
+              schedulingRating,
+              now,
+            );
+
+            const savedProgress = await transaction.userTermProgress.upsert({
+              where: {
+                userId_termId: {
+                  userId: user.id,
+                  termId: term.id,
+                },
+              },
+              create: {
+                userId: user.id,
+                termId: term.id,
+                status,
+                lastRating: rating,
+                easeFactor: schedule.easeFactor,
+                intervalDays: schedule.intervalDays,
+                repetitionCount: schedule.repetitionCount,
+                lapseCount: schedule.lapseCount,
+                reviewCount: 1,
+                lastReviewedAt: now,
+                nextReviewAt: schedule.nextReviewAt,
+              },
+              update: {
+                status,
+                ...(rating ? { lastRating: rating } : {}),
+                easeFactor: schedule.easeFactor,
+                intervalDays: schedule.intervalDays,
+                repetitionCount: schedule.repetitionCount,
+                lapseCount: schedule.lapseCount,
+                reviewCount: { increment: 1 },
+                lastReviewedAt: now,
+                nextReviewAt: schedule.nextReviewAt,
+              },
+              select: {
+                termId: true,
+                status: true,
+                lastRating: true,
+                easeFactor: true,
+                intervalDays: true,
+                repetitionCount: true,
+                lapseCount: true,
+                reviewCount: true,
+                lastReviewedAt: true,
+                nextReviewAt: true,
+                updatedAt: true,
+              },
+            });
+
+            return {
+              ...savedProgress,
+              reviewAccepted: true,
+              nextEligibleAt: savedProgress.nextReviewAt,
+            };
+          },
+          {
+            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          },
+        );
+      } catch (error) {
+        const transactionConflict =
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          error.code === "P2034";
+        if (!transactionConflict || attempt === 2) throw error;
+      }
+    }
+
+    throw new Error("Could not update vocabulary progress.");
   }
 
   async updateLearnSession(

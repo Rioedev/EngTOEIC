@@ -122,6 +122,12 @@ export function ReviewQueuePlayer({
         setCurrentIndex(nextIndex);
         setFlipped(false);
         setSaveState("idle");
+        if (!savedProgress.reviewAccepted) {
+          setAnnouncement(
+            `${currentItem.term.term} đã được cập nhật ở một lượt khác. Đã chuyển sang từ tiếp theo.`,
+          );
+          return;
+        }
         const scheduleDescription =
           savedProgress.intervalDays === 0
             ? "ôn lại sau khoảng 10 phút"
