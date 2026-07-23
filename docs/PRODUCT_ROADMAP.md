@@ -195,12 +195,12 @@ Tham khảo trải nghiệm: [Quizlet Study Modes](https://quizlet.com/en-gb/fea
 
 ### 6.6. Các chế độ luyện từ
 
-- [x] `VMODE-001` Write: nhìn nghĩa và nhập từ — route riêng `/vocabulary/[setSlug]/write`, kiểm tra chính tả, bắt buộc gõ lại đáp án sai và lưu checkpoint.
-- [ ] `VMODE-002` Spell: nghe audio và nhập từ.
-- [ ] `VMODE-003` Test: tạo bài kiểm tra từ bộ thẻ.
-- [ ] `VMODE-004` Match: ghép term với definition theo thời gian.
-- [ ] `VMODE-005` Multiple choice.
-- [ ] `VMODE-006` True/False.
+- [x] `VMODE-001` Write: nhìn nghĩa và nhập từ — đã tích hợp trong trung tâm Learn (`LEARN-008`).
+- [x] `VMODE-002` Spell: nghe audio và nhập từ — chế độ Nghe & viết trong trung tâm Learn (`LEARN-008`).
+- [x] `VMODE-003` Test: tạo bài kiểm tra từ bộ thẻ — route `/vocabulary/[setSlug]/test`, tùy chọn số câu và dạng bài, nộp một lần rồi xem điểm cùng đáp án chi tiết.
+- [x] `VMODE-004` Match: ghép term với definition theo thời gian — ghép theo vòng 6 cặp (`LEARN-009`).
+- [x] `VMODE-005` Multiple choice — chế độ Trắc nghiệm trong trung tâm Learn (`LEARN-008`).
+- [x] `VMODE-006` True/False — chế độ Đúng/Sai trong trung tâm Learn (`LEARN-008`).
 - [ ] `VMODE-007` Bảng thành tích Match cá nhân.
 
 ## 7. Module luyện đề kiểu Study4
@@ -543,10 +543,7 @@ Không lưu binary vào PostgreSQL; chỉ lưu URL và metadata của file Supab
 /vocabulary/[setSlug]
 /vocabulary/[setSlug]/flashcards
 /vocabulary/[setSlug]/learn
-/vocabulary/[setSlug]/write
-/vocabulary/[setSlug]/spell
 /vocabulary/[setSlug]/test
-/vocabulary/[setSlug]/match
 /vocabulary/review
 /library
 

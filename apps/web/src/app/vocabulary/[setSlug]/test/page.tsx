@@ -1,68 +1,37 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Keyboard, Layers3 } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, Layers3 } from "lucide-react";
 import { LearningFrame } from "@/components/home/learning-frame";
 import { TimeAwareBackground } from "@/components/home/time-aware-background";
-import { LearnPlayer } from "@/components/vocabulary/learn-player";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
-import {
-  getVocabularyProgress,
-  getVocabularySet,
-  type VocabularyLearnSession,
-  type VocabularyTermProgress,
-} from "@/lib/vocabulary";
+import { VocabularyTestPlayer } from "@/components/vocabulary/vocabulary-test-player";
+import { getVocabularySet } from "@/lib/vocabulary";
 
-type WritePageProps = {
+type TestPageProps = {
   params: Promise<{ setSlug: string }>;
 };
 
 export async function generateMetadata({
   params,
-}: WritePageProps): Promise<Metadata> {
+}: TestPageProps): Promise<Metadata> {
   const { setSlug } = await params;
   const { vocabularySet } = await getVocabularySet(setSlug);
 
   return {
     title: vocabularySet
-      ? `Viết từ: ${vocabularySet.title} | EngTOEIC`
+      ? `Test: ${vocabularySet.title} | EngTOEIC`
       : "Không tìm thấy bộ từ | EngTOEIC",
     description: vocabularySet
-      ? `Nhìn nghĩa tiếng Việt và viết lại từ tiếng Anh trong bộ ${vocabularySet.title}.`
+      ? `Tạo bài kiểm tra từ bộ ${vocabularySet.title} với câu hỏi trắc nghiệm, viết từ và đúng sai.`
       : undefined,
   };
 }
 
-export default async function WritePage({ params }: WritePageProps) {
+export default async function TestPage({ params }: TestPageProps) {
   const { setSlug } = await params;
-  const { vocabularySet, source } = await getVocabularySet(setSlug);
+  const { vocabularySet } = await getVocabularySet(setSlug);
 
   if (!vocabularySet) notFound();
-
-  let initialProgress: VocabularyTermProgress[] = [];
-  let initialLearnSession: VocabularyLearnSession | null = null;
-  let progressPersistenceEnabled = false;
-
-  if (source === "api" && isSupabaseConfigured()) {
-    const supabase = await createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (session) {
-      progressPersistenceEnabled = true;
-      const progress = await getVocabularyProgress(
-        vocabularySet.slug,
-        session.access_token,
-      );
-      initialProgress = progress?.data ?? [];
-      initialLearnSession =
-        progress?.learnSession?.studyMode === "write"
-          ? progress.learnSession
-          : null;
-    }
-  }
 
   return (
     <main className="relative min-h-svh overflow-x-hidden bg-[#101617] pb-32 text-white">
@@ -82,12 +51,12 @@ export default async function WritePage({ params }: WritePageProps) {
             <ArrowLeft className="size-4" aria-hidden="true" />
             {vocabularySet.title}
           </Link>
-          <div className="flex items-center gap-2 text-xs font-semibold text-white/52">
-            <Keyboard
+          <div className="flex items-center gap-2 text-xs text-white/54">
+            <ClipboardCheck
               className="size-4 text-[var(--accent)]"
               aria-hidden="true"
             />
-            Viết từ
+            Test từ vựng
             <span className="text-white/25">•</span>
             <Layers3
               className="size-4 text-[var(--accent)]"
@@ -97,13 +66,9 @@ export default async function WritePage({ params }: WritePageProps) {
           </div>
         </div>
 
-        <LearnPlayer
+        <VocabularyTestPlayer
           terms={vocabularySet.terms ?? []}
           setSlug={vocabularySet.slug}
-          initialProgress={initialProgress}
-          initialLearnSession={initialLearnSession}
-          progressPersistenceEnabled={progressPersistenceEnabled}
-          lockedStudyMode="write"
         />
       </div>
     </main>

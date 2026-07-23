@@ -1,8 +1,8 @@
-// File: C:\Users\ADMIN\Desktop\Project\engtoeic\apps\web\src\app\vocabulary\[setSlug]\write\page.tsx
-import * as entry from '../../../../../../src/app/vocabulary/[setSlug]/write/page.js'
+// File: C:\Users\ADMIN\Desktop\Project\engtoeic\apps\web\src\app\vocabulary\[setSlug]\test\page.tsx
+import * as entry from '../../../../../../src/app/vocabulary/[setSlug]/test/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
-type TEntry = typeof import('../../../../../../src/app/vocabulary/[setSlug]/write/page.js')
+type TEntry = typeof import('../../../../../../src/app/vocabulary/[setSlug]/test/page.js')
 
 type SegmentParams<T extends Object = any> = T extends Record<string, any>
   ? { [K in keyof T]: T[K] extends string ? string | string[] | undefined : never }
