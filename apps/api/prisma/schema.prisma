@@ -130,18 +130,22 @@ model SavedVocabularySet {
 }
 
 model UserTermProgress {
-  id             String                   @id @default(cuid())
-  userId         String                   @db.Uuid
-  termId         String
-  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  term           VocabularyTerm           @relation(fields: [termId], references: [id], onDelete: Cascade)
-  status         VocabularyProgressStatus @default(NEW)
-  lastRating     VocabularyReviewRating?
-  reviewCount    Int                      @default(0)
-  lastReviewedAt DateTime?
-  nextReviewAt   DateTime?
-  createdAt      DateTime                 @default(now())
-  updatedAt      DateTime                 @updatedAt
+  id              String                   @id @default(cuid())
+  userId          String                   @db.Uuid
+  termId          String
+  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  term            VocabularyTerm           @relation(fields: [termId], references: [id], onDelete: Cascade)
+  status          VocabularyProgressStatus @default(NEW)
+  lastRating      VocabularyReviewRating?
+  easeFactor      Float                    @default(2.5)
+  intervalDays    Int                      @default(0)
+  repetitionCount Int                      @default(0)
+  lapseCount      Int                      @default(0)
+  reviewCount     Int                      @default(0)
+  lastReviewedAt  DateTime?
+  nextReviewAt    DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
 
   @@unique([userId, termId])
   @@index([termId])

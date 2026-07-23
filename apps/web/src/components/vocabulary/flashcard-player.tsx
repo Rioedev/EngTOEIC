@@ -39,6 +39,12 @@ type Rating = VocabularyReviewRating;
 type StudyDirection = "EN_VI" | "VI_EN";
 type SaveState = "idle" | "saving" | "saved" | "error";
 
+function describeReviewSchedule(intervalDays: number) {
+  return intervalDays === 0
+    ? "ôn lại sau khoảng 10 phút"
+    : `ôn lại sau ${intervalDays} ngày`;
+}
+
 const ratingMeta: Record<
   Rating,
   {
@@ -52,28 +58,28 @@ const ratingMeta: Record<
   AGAIN: {
     label: "Again",
     description: "Chưa nhớ",
-    schedule: "Ôn lại ngay",
+    schedule: "Học lại sớm",
     badgeTone: "bg-rose-300/14 text-rose-100",
     buttonTone: "bg-rose-300/13 text-rose-100 hover:bg-rose-300/21",
   },
   HARD: {
     label: "Hard",
     description: "Khó",
-    schedule: "Sau 1 ngày",
+    schedule: "Khoảng ngắn hơn",
     badgeTone: "bg-amber-300/14 text-amber-100",
     buttonTone: "bg-amber-300/13 text-amber-100 hover:bg-amber-300/21",
   },
   GOOD: {
     label: "Good",
     description: "Nhớ được",
-    schedule: "Sau 3 ngày",
+    schedule: "Theo nhịp hiện tại",
     badgeTone: "bg-sky-300/14 text-sky-100",
     buttonTone: "bg-sky-300/13 text-sky-100 hover:bg-sky-300/21",
   },
   EASY: {
     label: "Easy",
     description: "Rất dễ",
-    schedule: "Sau 7 ngày",
+    schedule: "Kéo dài khoảng ôn",
     badgeTone: "bg-emerald-300/14 text-emerald-100",
     buttonTone: "bg-emerald-300/13 text-emerald-100 hover:bg-emerald-300/21",
   },
@@ -280,12 +286,14 @@ export function FlashcardPlayer({
   );
 
   const persistRating = useCallback(
-    (termId: string, rating: Rating) => {
+    (termId: string, termLabel: string, rating: Rating) => {
       if (!progressPersistenceEnabled) return;
-      enqueueSave(
-        () => rateVocabularyTerm(setSlug, termId, rating),
-        "Chưa thể đồng bộ tiến độ. Kết quả vẫn được giữ trong phiên này.",
-      );
+      enqueueSave(async () => {
+        const savedProgress = await rateVocabularyTerm(setSlug, termId, rating);
+        setAnnouncement(
+          `${termLabel}: ${ratingMeta[rating].label}, ${describeReviewSchedule(savedProgress.intervalDays)}.`,
+        );
+      }, "Chưa thể đồng bộ tiến độ. Kết quả vẫn được giữ trong phiên này.");
     },
     [enqueueSave, progressPersistenceEnabled, setSlug],
   );
@@ -331,10 +339,10 @@ export function FlashcardPlayer({
         ...currentRatings,
         [currentTerm.id]: rating,
       }));
-      persistRating(currentTerm.id, rating);
+      persistRating(currentTerm.id, currentTerm.term, rating);
       showNext();
       setAnnouncement(
-        `${currentTerm.term}: ${ratingMeta[rating].label}, ${ratingMeta[rating].schedule.toLocaleLowerCase("vi")}. Đã chuyển sang thẻ tiếp theo.`,
+        `${currentTerm.term}: ${ratingMeta[rating].label}. Đang cập nhật lịch ôn thích ứng và chuyển sang thẻ tiếp theo.`,
       );
     },
     [currentTerm, flipped, persistRating, resumePromptOpen, showNext],

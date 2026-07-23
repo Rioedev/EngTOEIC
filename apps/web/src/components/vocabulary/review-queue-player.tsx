@@ -39,25 +39,25 @@ const ratingMeta: Record<
   AGAIN: {
     label: "Again",
     description: "Chưa nhớ",
-    schedule: "Ôn lại ngay",
+    schedule: "Học lại sớm",
     tone: "bg-rose-300/13 text-rose-100 hover:bg-rose-300/21",
   },
   HARD: {
     label: "Hard",
     description: "Khó",
-    schedule: "Sau 1 ngày",
+    schedule: "Khoảng ngắn hơn",
     tone: "bg-amber-300/13 text-amber-100 hover:bg-amber-300/21",
   },
   GOOD: {
     label: "Good",
     description: "Nhớ được",
-    schedule: "Sau 3 ngày",
+    schedule: "Theo nhịp hiện tại",
     tone: "bg-sky-300/13 text-sky-100 hover:bg-sky-300/21",
   },
   EASY: {
     label: "Easy",
     description: "Rất dễ",
-    schedule: "Sau 7 ngày",
+    schedule: "Kéo dài khoảng ôn",
     tone: "bg-emerald-300/13 text-emerald-100 hover:bg-emerald-300/21",
   },
 };
@@ -113,7 +113,7 @@ export function ReviewQueuePlayer({
       setSaveState("saving");
 
       try {
-        await rateVocabularyTerm(
+        const savedProgress = await rateVocabularyTerm(
           currentItem.set.slug,
           currentItem.term.id,
           rating,
@@ -122,8 +122,12 @@ export function ReviewQueuePlayer({
         setCurrentIndex(nextIndex);
         setFlipped(false);
         setSaveState("idle");
+        const scheduleDescription =
+          savedProgress.intervalDays === 0
+            ? "ôn lại sau khoảng 10 phút"
+            : `ôn lại sau ${savedProgress.intervalDays} ngày`;
         setAnnouncement(
-          `${currentItem.term.term}: ${ratingMeta[rating].label}, ${ratingMeta[rating].schedule.toLocaleLowerCase("vi")}. ${
+          `${currentItem.term.term}: ${ratingMeta[rating].label}, ${scheduleDescription}. ${
             nextIndex < initialQueue.length
               ? "Đã chuyển sang từ tiếp theo."
               : "Đã hoàn thành lượt ôn."
@@ -314,6 +318,9 @@ export function ReviewQueuePlayer({
             {currentItem.set.title}
           </span>
           <span className="text-white/42">
+            {currentItem.progress.intervalDays > 0
+              ? `Chu kỳ ${currentItem.progress.intervalDays} ngày · `
+              : ""}
             Đã ôn {currentItem.progress.reviewCount} lần
           </span>
         </div>

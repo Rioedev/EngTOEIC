@@ -2,7 +2,6 @@
   "/page": "app/page.js",
   "/vocabulary/page": "app/vocabulary/page.js",
   "/vocabulary/[setSlug]/page": "app/vocabulary/[setSlug]/page.js",
-  "/vocabulary/[setSlug]/learn/page": "app/vocabulary/[setSlug]/learn/page.js",
-  "/vocabulary/[setSlug]/flashcards/page": "app/vocabulary/[setSlug]/flashcards/page.js",
-  "/vocabulary/review/page": "app/vocabulary/review/page.js"
+  "/vocabulary/review/page": "app/vocabulary/review/page.js",
+  "/vocabulary/[setSlug]/flashcards/page": "app/vocabulary/[setSlug]/flashcards/page.js"
 }

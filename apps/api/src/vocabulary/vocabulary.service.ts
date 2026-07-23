@@ -12,6 +12,10 @@ import {
 import { AuthService } from "../auth/auth.service";
 import type { AuthenticatedUser } from "../auth/auth.types";
 import { PrismaService } from "../prisma/prisma.service";
+import {
+  calculateSpacedRepetition,
+  DEFAULT_EASE_FACTOR,
+} from "./spaced-repetition";
 
 type VocabularyListQuery = {
   page?: string;
@@ -188,6 +192,10 @@ export class VocabularyService {
         select: {
           status: true,
           lastRating: true,
+          easeFactor: true,
+          intervalDays: true,
+          repetitionCount: true,
+          lapseCount: true,
           reviewCount: true,
           lastReviewedAt: true,
           nextReviewAt: true,
@@ -232,6 +240,10 @@ export class VocabularyService {
           progress: {
             status: item.status,
             lastRating: item.lastRating,
+            easeFactor: item.easeFactor,
+            intervalDays: item.intervalDays,
+            repetitionCount: item.repetitionCount,
+            lapseCount: item.lapseCount,
             reviewCount: item.reviewCount,
             lastReviewedAt: item.lastReviewedAt,
             nextReviewAt: item.nextReviewAt,
@@ -260,6 +272,10 @@ export class VocabularyService {
           termId: true,
           status: true,
           lastRating: true,
+          easeFactor: true,
+          intervalDays: true,
+          repetitionCount: true,
+          lapseCount: true,
           reviewCount: true,
           lastReviewedAt: true,
           nextReviewAt: true,
@@ -432,7 +448,13 @@ export class VocabularyService {
           termId: term.id,
         },
       },
-      select: { status: true },
+      select: {
+        status: true,
+        easeFactor: true,
+        intervalDays: true,
+        repetitionCount: true,
+        lapseCount: true,
+      },
     });
     const submittedResultCount = [
       statusValue,
@@ -466,7 +488,23 @@ export class VocabularyService {
               correct,
             );
     const now = new Date();
-    const nextReviewAt = this.initialNextReviewAt(status, correct, rating, now);
+    const schedulingRating =
+      rating ??
+      (correct !== undefined
+        ? correct
+          ? VocabularyReviewRating.GOOD
+          : VocabularyReviewRating.AGAIN
+        : this.reviewRatingForStatus(status));
+    const schedule = calculateSpacedRepetition(
+      {
+        easeFactor: currentProgress?.easeFactor ?? DEFAULT_EASE_FACTOR,
+        intervalDays: currentProgress?.intervalDays ?? 0,
+        repetitionCount: currentProgress?.repetitionCount ?? 0,
+        lapseCount: currentProgress?.lapseCount ?? 0,
+      },
+      schedulingRating,
+      now,
+    );
 
     return this.prisma.userTermProgress.upsert({
       where: {
@@ -480,21 +518,33 @@ export class VocabularyService {
         termId: term.id,
         status,
         lastRating: rating,
+        easeFactor: schedule.easeFactor,
+        intervalDays: schedule.intervalDays,
+        repetitionCount: schedule.repetitionCount,
+        lapseCount: schedule.lapseCount,
         reviewCount: 1,
         lastReviewedAt: now,
-        nextReviewAt,
+        nextReviewAt: schedule.nextReviewAt,
       },
       update: {
         status,
         ...(rating ? { lastRating: rating } : {}),
+        easeFactor: schedule.easeFactor,
+        intervalDays: schedule.intervalDays,
+        repetitionCount: schedule.repetitionCount,
+        lapseCount: schedule.lapseCount,
         reviewCount: { increment: 1 },
         lastReviewedAt: now,
-        nextReviewAt,
+        nextReviewAt: schedule.nextReviewAt,
       },
       select: {
         termId: true,
         status: true,
         lastRating: true,
+        easeFactor: true,
+        intervalDays: true,
+        repetitionCount: true,
+        lapseCount: true,
         reviewCount: true,
         lastReviewedAt: true,
         nextReviewAt: true,
@@ -757,36 +807,17 @@ export class VocabularyService {
     return this.nextProgressStatus(current, true);
   }
 
-  private initialNextReviewAt(
-    status: VocabularyProgressStatus,
-    correct: boolean | undefined,
-    rating: VocabularyReviewRating | undefined,
-    reviewedAt: Date,
-  ) {
-    if (rating) {
-      const ratingDelayDays: Record<VocabularyReviewRating, number> = {
-        [VocabularyReviewRating.AGAIN]: 0,
-        [VocabularyReviewRating.HARD]: 1,
-        [VocabularyReviewRating.GOOD]: 3,
-        [VocabularyReviewRating.EASY]: 7,
-      };
-      return new Date(
-        reviewedAt.getTime() + ratingDelayDays[rating] * 24 * 60 * 60 * 1000,
-      );
+  private reviewRatingForStatus(status: VocabularyProgressStatus) {
+    if (status === VocabularyProgressStatus.NEW) {
+      return VocabularyReviewRating.AGAIN;
     }
-
-    if (correct === false || status === VocabularyProgressStatus.NEW) {
-      return reviewedAt;
+    if (status === VocabularyProgressStatus.LEARNING) {
+      return VocabularyReviewRating.HARD;
     }
-
-    const delayDays =
-      status === VocabularyProgressStatus.LEARNING
-        ? 1
-        : status === VocabularyProgressStatus.FAMILIAR
-          ? 3
-          : 7;
-
-    return new Date(reviewedAt.getTime() + delayDays * 24 * 60 * 60 * 1000);
+    if (status === VocabularyProgressStatus.FAMILIAR) {
+      return VocabularyReviewRating.GOOD;
+    }
+    return VocabularyReviewRating.EASY;
   }
 
   private parseRequiredString(value: unknown, field: string) {

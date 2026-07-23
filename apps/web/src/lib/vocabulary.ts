@@ -46,6 +46,10 @@ export type VocabularyTermProgress = {
   termId: string;
   status: VocabularyProgressStatus;
   lastRating: VocabularyReviewRating | null;
+  easeFactor: number;
+  intervalDays: number;
+  repetitionCount: number;
+  lapseCount: number;
   reviewCount: number;
   lastReviewedAt: string | null;
   nextReviewAt: string | null;
@@ -80,6 +84,10 @@ export type VocabularyReviewQueueItem = {
   progress: {
     status: VocabularyProgressStatus;
     lastRating: VocabularyReviewRating | null;
+    easeFactor: number;
+    intervalDays: number;
+    repetitionCount: number;
+    lapseCount: number;
     reviewCount: number;
     lastReviewedAt: string | null;
     nextReviewAt: string;
