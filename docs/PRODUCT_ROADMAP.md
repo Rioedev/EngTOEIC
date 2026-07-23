@@ -187,8 +187,8 @@ Tham khảo trải nghiệm: [Quizlet Study Modes](https://quizlet.com/en-gb/fea
 #### P1
 
 - [x] `SRS-001` Lịch ôn theo từng từ và từng người dùng — lưu `nextReviewAt`, tự khởi tạo lịch sau mỗi lần học và hiển thị tóm tắt lịch cá nhân.
-- [ ] `SRS-002` Rating: Again, Hard, Good, Easy.
-- [ ] `SRS-003` Hàng đợi “Cần ôn hôm nay”.
+- [x] `SRS-002` Rating: Again, Hard, Good, Easy — chấm sau khi lật Flashcard, hỗ trợ phím `1–4` và lưu mức đánh giá cuối cùng.
+- [x] `SRS-003` Hàng đợi “Cần ôn hôm nay” — trang `/vocabulary/review` lấy tối đa 20 từ đến hạn, chấm rating và cập nhật lịch ngay trong lượt.
 - [ ] `SRS-004` Cập nhật interval, ease và nextReviewAt.
 - [ ] `SRS-005` Thống kê retention và số từ đến hạn.
 - [ ] `SRS-006` Chống cộng tiến độ sai khi học lặp liên tục.

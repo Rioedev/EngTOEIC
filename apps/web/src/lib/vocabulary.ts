@@ -40,9 +40,12 @@ export type VocabularySet = {
 export type VocabularyProgressStatus =
   "NEW" | "LEARNING" | "FAMILIAR" | "MASTERED";
 
+export type VocabularyReviewRating = "AGAIN" | "HARD" | "GOOD" | "EASY";
+
 export type VocabularyTermProgress = {
   termId: string;
   status: VocabularyProgressStatus;
+  lastRating: VocabularyReviewRating | null;
   reviewCount: number;
   lastReviewedAt: string | null;
   nextReviewAt: string | null;
@@ -66,6 +69,30 @@ export type VocabularyReviewScheduleResponse = {
     nextReviewAt: string | null;
   };
   items: VocabularyReviewScheduleItem[];
+};
+
+export type VocabularyReviewQueueItem = {
+  term: VocabularyTerm;
+  set: {
+    slug: string;
+    title: string;
+  };
+  progress: {
+    status: VocabularyProgressStatus;
+    lastRating: VocabularyReviewRating | null;
+    reviewCount: number;
+    lastReviewedAt: string | null;
+    nextReviewAt: string;
+  };
+};
+
+export type VocabularyReviewQueueResponse = {
+  data: VocabularyReviewQueueItem[];
+  meta: {
+    total: number;
+    limit: number;
+    generatedAt: string;
+  };
 };
 
 export type VocabularyStudySession = {
@@ -266,6 +293,30 @@ export async function getVocabularyReviewSchedule(accessToken: string) {
     }
 
     return (await response.json()) as VocabularyReviewScheduleResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function getVocabularyReviewQueue(
+  accessToken: string,
+  limit = 20,
+) {
+  try {
+    const response = await fetch(
+      `${getApiBaseUrl()}/vocabulary/review-queue?limit=${limit}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: "no-store",
+        signal: AbortSignal.timeout(3500),
+      },
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as VocabularyReviewQueueResponse;
   } catch {
     return null;
   }

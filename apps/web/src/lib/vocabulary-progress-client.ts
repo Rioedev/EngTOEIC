@@ -4,6 +4,7 @@ import type {
   VocabularyLearnStudyMode,
   VocabularyProgressResponse,
   VocabularyProgressStatus,
+  VocabularyReviewRating,
   VocabularyStudySession,
   VocabularyTermProgress,
 } from "@/lib/vocabulary";
@@ -99,6 +100,31 @@ export async function recordVocabularyTermAnswer(
 
   if (!response.ok) {
     throw new Error(`Không thể lưu kết quả học (${response.status}).`);
+  }
+
+  return (await response.json()) as VocabularyTermProgress;
+}
+
+export async function rateVocabularyTerm(
+  setSlug: string,
+  termId: string,
+  rating: VocabularyReviewRating,
+) {
+  const accessToken = await getAccessToken();
+  const response = await fetch(
+    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/terms/${encodeURIComponent(termId)}/progress`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ rating }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Không thể lưu mức độ ghi nhớ (${response.status}).`);
   }
 
   return (await response.json()) as VocabularyTermProgress;

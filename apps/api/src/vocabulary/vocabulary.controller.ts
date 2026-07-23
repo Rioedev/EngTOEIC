@@ -16,6 +16,7 @@ import { VocabularyService } from "./vocabulary.service";
 type UpdateTermProgressBody = {
   status?: unknown;
   correct?: unknown;
+  rating?: unknown;
 };
 
 type UpdateStudySessionBody = {
@@ -114,6 +115,7 @@ export class VocabularyController {
       termId,
       body.status,
       body.correct,
+      body.rating,
       user,
     );
   }

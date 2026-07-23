@@ -3,7 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { Prisma, ToeicPart, VocabularyProgressStatus } from "@prisma/client";
+import {
+  Prisma,
+  ToeicPart,
+  VocabularyProgressStatus,
+  VocabularyReviewRating,
+} from "@prisma/client";
 import { AuthService } from "../auth/auth.service";
 import type { AuthenticatedUser } from "../auth/auth.types";
 import { PrismaService } from "../prisma/prisma.service";
@@ -164,6 +169,83 @@ export class VocabularyService {
     };
   }
 
+  async findReviewQueue(userId: string, limitValue?: string) {
+    const limit = Math.min(
+      this.parsePositiveInteger(limitValue, 20, "limit"),
+      50,
+    );
+    const now = new Date();
+    const dueWhere: Prisma.UserTermProgressWhereInput = {
+      userId,
+      nextReviewAt: { lte: now },
+      term: { vocabularySet: { isPublished: true } },
+    };
+    const [progressItems, total] = await this.prisma.$transaction([
+      this.prisma.userTermProgress.findMany({
+        where: dueWhere,
+        orderBy: [{ nextReviewAt: "asc" }, { lastReviewedAt: "asc" }],
+        take: limit,
+        select: {
+          status: true,
+          lastRating: true,
+          reviewCount: true,
+          lastReviewedAt: true,
+          nextReviewAt: true,
+          term: {
+            select: {
+              id: true,
+              term: true,
+              meaningVi: true,
+              ipa: true,
+              partOfSpeech: true,
+              audioUrl: true,
+              exampleEn: true,
+              exampleVi: true,
+              imageUrl: true,
+              collocations: true,
+              synonyms: true,
+              antonyms: true,
+              sourceName: true,
+              sourceUrl: true,
+              sourceLicense: true,
+              sourceExternalId: true,
+              order: true,
+              vocabularySet: {
+                select: {
+                  slug: true,
+                  title: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.userTermProgress.count({ where: dueWhere }),
+    ]);
+
+    return {
+      data: progressItems.map((item) => {
+        const { vocabularySet, ...term } = item.term;
+        return {
+          term,
+          set: vocabularySet,
+          progress: {
+            status: item.status,
+            lastRating: item.lastRating,
+            reviewCount: item.reviewCount,
+            lastReviewedAt: item.lastReviewedAt,
+            nextReviewAt: item.nextReviewAt,
+          },
+        };
+      }),
+      meta: {
+        total,
+        limit,
+        generatedAt: now,
+      },
+    };
+  }
+
   async findProgress(slug: string, userId: string) {
     const vocabularySet = await this.findPublishedSet(slug);
     const checkpointCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -177,6 +259,7 @@ export class VocabularyService {
         select: {
           termId: true,
           status: true,
+          lastRating: true,
           reviewCount: true,
           lastReviewedAt: true,
           nextReviewAt: true,
@@ -321,6 +404,7 @@ export class VocabularyService {
     termId: string,
     statusValue: unknown,
     correctValue: unknown,
+    ratingValue: unknown,
     user: AuthenticatedUser,
   ) {
     const term = await this.prisma.vocabularyTerm.findFirst({
@@ -350,19 +434,39 @@ export class VocabularyService {
       },
       select: { status: true },
     });
+    const submittedResultCount = [
+      statusValue,
+      correctValue,
+      ratingValue,
+    ].filter((value) => value !== undefined).length;
+    if (submittedResultCount !== 1) {
+      throw new BadRequestException(
+        "Provide exactly one of status, correct, or rating.",
+      );
+    }
+
+    const rating =
+      ratingValue === undefined
+        ? undefined
+        : this.parseReviewRating(ratingValue);
     const correct =
       correctValue === undefined
         ? undefined
         : this.parseCorrectResult(correctValue);
     const status =
-      correct === undefined
-        ? this.parseProgressStatus(statusValue)
-        : this.nextProgressStatus(
+      rating !== undefined
+        ? this.nextProgressStatusForRating(
             currentProgress?.status ?? VocabularyProgressStatus.NEW,
-            correct,
-          );
+            rating,
+          )
+        : correct === undefined
+          ? this.parseProgressStatus(statusValue)
+          : this.nextProgressStatus(
+              currentProgress?.status ?? VocabularyProgressStatus.NEW,
+              correct,
+            );
     const now = new Date();
-    const nextReviewAt = this.initialNextReviewAt(status, correct, now);
+    const nextReviewAt = this.initialNextReviewAt(status, correct, rating, now);
 
     return this.prisma.userTermProgress.upsert({
       where: {
@@ -375,12 +479,14 @@ export class VocabularyService {
         userId: user.id,
         termId: term.id,
         status,
+        lastRating: rating,
         reviewCount: 1,
         lastReviewedAt: now,
         nextReviewAt,
       },
       update: {
         status,
+        ...(rating ? { lastRating: rating } : {}),
         reviewCount: { increment: 1 },
         lastReviewedAt: now,
         nextReviewAt,
@@ -388,6 +494,7 @@ export class VocabularyService {
       select: {
         termId: true,
         status: true,
+        lastRating: true,
         reviewCount: true,
         lastReviewedAt: true,
         nextReviewAt: true,
@@ -570,6 +677,16 @@ export class VocabularyService {
     return value;
   }
 
+  private parseReviewRating(value: unknown) {
+    if (!Object.values(VocabularyReviewRating).includes(value as never)) {
+      throw new BadRequestException(
+        `rating must be one of: ${Object.values(VocabularyReviewRating).join(", ")}.`,
+      );
+    }
+
+    return value as VocabularyReviewRating;
+  }
+
   private parseLearnStudyMode(value: unknown) {
     if (typeof value !== "string" || !learnStudyModes.has(value)) {
       throw new BadRequestException(
@@ -622,11 +739,42 @@ export class VocabularyService {
     return VocabularyProgressStatus.LEARNING;
   }
 
+  private nextProgressStatusForRating(
+    current: VocabularyProgressStatus,
+    rating: VocabularyReviewRating,
+  ) {
+    if (rating === VocabularyReviewRating.AGAIN) {
+      return this.nextProgressStatus(current, false);
+    }
+    if (rating === VocabularyReviewRating.HARD) {
+      return current === VocabularyProgressStatus.NEW
+        ? VocabularyProgressStatus.LEARNING
+        : current;
+    }
+    if (rating === VocabularyReviewRating.EASY) {
+      return VocabularyProgressStatus.MASTERED;
+    }
+    return this.nextProgressStatus(current, true);
+  }
+
   private initialNextReviewAt(
     status: VocabularyProgressStatus,
     correct: boolean | undefined,
+    rating: VocabularyReviewRating | undefined,
     reviewedAt: Date,
   ) {
+    if (rating) {
+      const ratingDelayDays: Record<VocabularyReviewRating, number> = {
+        [VocabularyReviewRating.AGAIN]: 0,
+        [VocabularyReviewRating.HARD]: 1,
+        [VocabularyReviewRating.GOOD]: 3,
+        [VocabularyReviewRating.EASY]: 7,
+      };
+      return new Date(
+        reviewedAt.getTime() + ratingDelayDays[rating] * 24 * 60 * 60 * 1000,
+      );
+    }
+
     if (correct === false || status === VocabularyProgressStatus.NEW) {
       return reviewedAt;
     }

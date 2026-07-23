@@ -16,13 +16,14 @@ import {
   X,
 } from "lucide-react";
 import type {
+  VocabularyReviewRating,
   VocabularyStudySession,
   VocabularyTerm,
   VocabularyTermProgress,
 } from "@/lib/vocabulary";
 import {
   loadVocabularyProgress,
-  recordVocabularyTermAnswer,
+  rateVocabularyTerm,
   saveVocabularyStudySession,
 } from "@/lib/vocabulary-progress-client";
 
@@ -34,18 +35,63 @@ type FlashcardPlayerProps = {
   progressPersistenceEnabled: boolean;
 };
 
-type Rating = "known" | "learning";
+type Rating = VocabularyReviewRating;
 type StudyDirection = "EN_VI" | "VI_EN";
 type SaveState = "idle" | "saving" | "saved" | "error";
+
+const ratingMeta: Record<
+  Rating,
+  {
+    label: string;
+    description: string;
+    schedule: string;
+    badgeTone: string;
+    buttonTone: string;
+  }
+> = {
+  AGAIN: {
+    label: "Again",
+    description: "Chưa nhớ",
+    schedule: "Ôn lại ngay",
+    badgeTone: "bg-rose-300/14 text-rose-100",
+    buttonTone: "bg-rose-300/13 text-rose-100 hover:bg-rose-300/21",
+  },
+  HARD: {
+    label: "Hard",
+    description: "Khó",
+    schedule: "Sau 1 ngày",
+    badgeTone: "bg-amber-300/14 text-amber-100",
+    buttonTone: "bg-amber-300/13 text-amber-100 hover:bg-amber-300/21",
+  },
+  GOOD: {
+    label: "Good",
+    description: "Nhớ được",
+    schedule: "Sau 3 ngày",
+    badgeTone: "bg-sky-300/14 text-sky-100",
+    buttonTone: "bg-sky-300/13 text-sky-100 hover:bg-sky-300/21",
+  },
+  EASY: {
+    label: "Easy",
+    description: "Rất dễ",
+    schedule: "Sau 7 ngày",
+    badgeTone: "bg-emerald-300/14 text-emerald-100",
+    buttonTone: "bg-emerald-300/13 text-emerald-100 hover:bg-emerald-300/21",
+  },
+};
 
 function createInitialRatings(
   progress: VocabularyTermProgress[],
 ): Record<string, Rating> {
   return progress.reduce<Record<string, Rating>>((ratings, item) => {
-    if (item.status === "FAMILIAR" || item.status === "MASTERED") {
-      ratings[item.termId] = "known";
+    if (item.lastRating) {
+      ratings[item.termId] = item.lastRating;
+    } else if (item.status === "MASTERED") {
+      ratings[item.termId] = "EASY";
+    } else if (item.status === "FAMILIAR") {
+      ratings[item.termId] = "GOOD";
+    } else if (item.status === "LEARNING") {
+      ratings[item.termId] = "AGAIN";
     }
-    if (item.status === "LEARNING") ratings[item.termId] = "learning";
     return ratings;
   }, {});
 }
@@ -114,11 +160,11 @@ export function FlashcardPlayer({
   );
 
   const currentTerm = cards[currentIndex];
-  const knownCount = Object.values(ratings).filter(
-    (rating) => rating === "known",
+  const rememberedCount = Object.values(ratings).filter(
+    (rating) => rating === "GOOD" || rating === "EASY",
   ).length;
-  const learningCount = Object.values(ratings).filter(
-    (rating) => rating === "learning",
+  const needsReviewCount = Object.values(ratings).filter(
+    (rating) => rating === "AGAIN" || rating === "HARD",
   ).length;
   const resumeTerm = orderedTerms[initialSessionIndex];
 
@@ -237,7 +283,7 @@ export function FlashcardPlayer({
     (termId: string, rating: Rating) => {
       if (!progressPersistenceEnabled) return;
       enqueueSave(
-        () => recordVocabularyTermAnswer(setSlug, termId, rating === "known"),
+        () => rateVocabularyTerm(setSlug, termId, rating),
         "Chưa thể đồng bộ tiến độ. Kết quả vẫn được giữ trong phiên này.",
       );
     },
@@ -276,20 +322,22 @@ export function FlashcardPlayer({
   const rateCard = useCallback(
     (rating: Rating) => {
       if (!currentTerm || resumePromptOpen) return;
+      if (!flipped) {
+        setAnnouncement("Hãy lật thẻ trước khi chọn mức độ ghi nhớ.");
+        return;
+      }
       locallyRatedTerms.current.add(currentTerm.id);
       setRatings((currentRatings) => ({
         ...currentRatings,
         [currentTerm.id]: rating,
       }));
-      setAnnouncement(
-        rating === "known"
-          ? `Đã đánh dấu ${currentTerm.term} là đã biết.`
-          : `Đã đánh dấu ${currentTerm.term} là chưa nhớ.`,
-      );
       persistRating(currentTerm.id, rating);
       showNext();
+      setAnnouncement(
+        `${currentTerm.term}: ${ratingMeta[rating].label}, ${ratingMeta[rating].schedule.toLocaleLowerCase("vi")}. Đã chuyển sang thẻ tiếp theo.`,
+      );
     },
-    [currentTerm, persistRating, resumePromptOpen, showNext],
+    [currentTerm, flipped, persistRating, resumePromptOpen, showNext],
   );
 
   const shuffleCards = useCallback(() => {
@@ -352,10 +400,14 @@ export function FlashcardPlayer({
       } else if (event.key === " " || event.key === "Enter") {
         event.preventDefault();
         flipCard();
-      } else if (event.key.toLocaleLowerCase() === "k") {
-        rateCard("known");
-      } else if (event.key.toLocaleLowerCase() === "l") {
-        rateCard("learning");
+      } else if (event.key === "1") {
+        rateCard("AGAIN");
+      } else if (event.key === "2") {
+        rateCard("HARD");
+      } else if (event.key === "3") {
+        rateCard("GOOD");
+      } else if (event.key === "4") {
+        rateCard("EASY");
       } else if (event.key.toLocaleLowerCase() === "s" && currentTerm) {
         speakTerm(currentTerm);
       }
@@ -522,10 +574,10 @@ export function FlashcardPlayer({
 
       <div className="mt-4 flex flex-wrap gap-3 text-xs font-bold text-white/58">
         <span className="rounded-full bg-emerald-300/12 px-3 py-1.5 text-emerald-100">
-          Đã biết {knownCount}
+          Nhớ tốt {rememberedCount}
         </span>
         <span className="rounded-full bg-amber-300/12 px-3 py-1.5 text-amber-100">
-          Chưa nhớ {learningCount}
+          Cần ôn {needsReviewCount}
         </span>
         <span className="rounded-full bg-white/7 px-3 py-1.5">
           Đã phân loại {Object.keys(ratings).length}/{cards.length}
@@ -598,13 +650,9 @@ export function FlashcardPlayer({
               </span>
               {currentRating ? (
                 <span
-                  className={`absolute right-5 top-5 rounded-full px-3 py-1.5 text-[0.65rem] font-extrabold uppercase tracking-wider ${
-                    currentRating === "known"
-                      ? "bg-emerald-300/14 text-emerald-100"
-                      : "bg-amber-300/14 text-amber-100"
-                  }`}
+                  className={`absolute right-5 top-5 rounded-full px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-wider ${ratingMeta[currentRating].badgeTone}`}
                 >
-                  {currentRating === "known" ? "Đã biết" : "Chưa nhớ"}
+                  {ratingMeta[currentRating].label}
                 </span>
               ) : null}
 
@@ -670,7 +718,7 @@ export function FlashcardPlayer({
         </button>
       </div>
 
-      <div className="mx-auto mt-6 grid max-w-3xl grid-cols-[auto_1fr_1fr_auto] gap-2 sm:gap-3">
+      <div className="mx-auto mt-6 grid max-w-3xl grid-cols-[auto_1fr_auto] items-stretch gap-2 sm:gap-3">
         <button
           type="button"
           className="grid min-h-12 min-w-12 place-items-center rounded-2xl bg-white/8 text-white/65 transition hover:bg-white/14 hover:text-white"
@@ -680,24 +728,38 @@ export function FlashcardPlayer({
         >
           <ArrowLeft className="size-5" aria-hidden="true" />
         </button>
-        <button
-          type="button"
-          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-amber-300/14 px-3 text-sm font-black text-amber-100 transition hover:bg-amber-300/22"
-          onClick={() => rateCard("learning")}
-          disabled={resumePromptOpen}
+        <fieldset
+          className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+          aria-describedby="flashcard-rating-hint"
         >
-          <X className="size-5" aria-hidden="true" />
-          <span className="max-sm:sr-only">Chưa nhớ</span>
-        </button>
-        <button
-          type="button"
-          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-300/14 px-3 text-sm font-black text-emerald-100 transition hover:bg-emerald-300/22"
-          onClick={() => rateCard("known")}
-          disabled={resumePromptOpen}
-        >
-          <Check className="size-5" aria-hidden="true" />
-          <span className="max-sm:sr-only">Đã biết</span>
-        </button>
+          <legend className="sr-only">Đánh giá mức độ ghi nhớ</legend>
+          {(Object.keys(ratingMeta) as Rating[]).map((rating, index) => (
+            <button
+              key={rating}
+              type="button"
+              className={`flex min-h-14 items-center justify-center gap-2 rounded-2xl px-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-35 ${ratingMeta[rating].buttonTone}`}
+              onClick={() => rateCard(rating)}
+              disabled={resumePromptOpen || !flipped}
+              aria-label={`${ratingMeta[rating].label}: ${ratingMeta[rating].description}, ${ratingMeta[rating].schedule}`}
+            >
+              {rating === "AGAIN" ? (
+                <RotateCcw className="size-4" aria-hidden="true" />
+              ) : rating === "HARD" ? (
+                <X className="size-4" aria-hidden="true" />
+              ) : rating === "GOOD" ? (
+                <Check className="size-4" aria-hidden="true" />
+              ) : (
+                <Sparkles className="size-4" aria-hidden="true" />
+              )}
+              <span>
+                <span className="block">{ratingMeta[rating].label}</span>
+                <span className="mt-0.5 block text-[0.62rem] font-medium opacity-65">
+                  {index + 1} · {ratingMeta[rating].schedule}
+                </span>
+              </span>
+            </button>
+          ))}
+        </fieldset>
         <button
           type="button"
           className="grid min-h-12 min-w-12 place-items-center rounded-2xl bg-[var(--accent)] text-[var(--accent-ink)] transition hover:bg-[var(--accent-hover)]"
@@ -710,11 +772,19 @@ export function FlashcardPlayer({
         </button>
       </div>
 
-      <div className="mx-auto mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[0.68rem] font-bold text-white/38">
+      <p
+        id="flashcard-rating-hint"
+        className="mx-auto mt-3 max-w-3xl text-center text-xs text-white/42"
+      >
+        {flipped
+          ? "Chọn mức độ nhớ để lên lịch ôn tiếp theo."
+          : "Lật thẻ để mở bốn mức đánh giá."}
+      </p>
+
+      <div className="mx-auto mt-3 flex max-w-3xl flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[0.68rem] font-semibold text-white/38">
         <span>← → điều hướng</span>
         <span>Space lật thẻ</span>
-        <span>K đã biết</span>
-        <span>L chưa nhớ</span>
+        <span>1–4 đánh giá</span>
         <button
           type="button"
           className="inline-flex min-h-9 items-center gap-1.5 rounded-full px-2 text-white/48 hover:bg-white/8 hover:text-white"

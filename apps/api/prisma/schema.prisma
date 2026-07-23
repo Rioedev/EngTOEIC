@@ -43,6 +43,13 @@ enum VocabularyProgressStatus {
   MASTERED
 }
 
+enum VocabularyReviewRating {
+  AGAIN
+  HARD
+  GOOD
+  EASY
+}
+
 model User {
   id                      String                   @id @db.Uuid
   email                   String                   @unique
@@ -129,6 +136,7 @@ model UserTermProgress {
   user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   term           VocabularyTerm           @relation(fields: [termId], references: [id], onDelete: Cascade)
   status         VocabularyProgressStatus @default(NEW)
+  lastRating     VocabularyReviewRating?
   reviewCount    Int                      @default(0)
   lastReviewedAt DateTime?
   nextReviewAt   DateTime?

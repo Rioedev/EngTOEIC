@@ -160,13 +160,15 @@ export default async function VocabularyPage({
 
               {firstReviewItem ? (
                 <Link
-                  href={`/vocabulary/${firstReviewItem.setSlug}/learn`}
+                  href={
+                    reviewSchedule.summary.dueNow > 0
+                      ? "/vocabulary/review"
+                      : `/vocabulary/${firstReviewItem.setSlug}/learn`
+                  }
                   className="inline-flex min-h-11 flex-none items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-[var(--accent-ink)] transition hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#101617]"
                   style={{ color: "var(--accent-ink)" }}
                 >
-                  {reviewSchedule.summary.dueNow > 0
-                    ? "Ôn bộ ưu tiên"
-                    : "Mở bộ từ"}
+                  {reviewSchedule.summary.dueNow > 0 ? "Ôn ngay" : "Mở bộ từ"}
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
               ) : null}

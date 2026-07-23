@@ -36,6 +36,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/vocabulary/[setSlug]/learn/page.js"
     ],
+    "/vocabulary/review/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/vocabulary/review/page.js"
+    ],
     "/vocabulary/[setSlug]/flashcards/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
