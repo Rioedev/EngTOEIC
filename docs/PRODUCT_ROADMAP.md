@@ -201,7 +201,7 @@ Tham khảo trải nghiệm: [Quizlet Study Modes](https://quizlet.com/en-gb/fea
 - [x] `VMODE-004` Match: ghép term với definition theo thời gian — ghép theo vòng 6 cặp (`LEARN-009`).
 - [x] `VMODE-005` Multiple choice — chế độ Trắc nghiệm trong trung tâm Learn (`LEARN-008`).
 - [x] `VMODE-006` True/False — chế độ Đúng/Sai trong trung tâm Learn (`LEARN-008`).
-- [ ] `VMODE-007` Bảng thành tích Match cá nhân.
+- [x] `VMODE-007` Bảng thành tích Match cá nhân — lưu thời gian, lượt ghép và số lỗi theo tài khoản; hiển thị top 10 thành tích của từng bộ từ ngay trong chế độ Match.
 
 ## 7. Module luyện đề kiểu Study4
 

@@ -146,6 +146,27 @@ export type VocabularyProgressResponse = {
   };
 };
 
+export type VocabularyMatchResult = {
+  id: string;
+  rank: number;
+  durationMs: number;
+  moves: number;
+  mistakes: number;
+  pairCount: number;
+  createdAt: string;
+};
+
+export type VocabularyMatchLeaderboard = {
+  data: VocabularyMatchResult[];
+  summary: {
+    totalPlays: number;
+    bestDurationMs: number | null;
+    bestMoves: number | null;
+    lastPlayedAt: string | null;
+  };
+  latestResultId?: string;
+};
+
 type VocabularyListResponse = {
   data: VocabularySet[];
   meta: {
@@ -287,6 +308,30 @@ export async function getVocabularyProgress(slug: string, accessToken: string) {
     }
 
     return (await response.json()) as VocabularyProgressResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function getVocabularyMatchResults(
+  slug: string,
+  accessToken: string,
+) {
+  try {
+    const response = await fetch(
+      `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(slug)}/match-results`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: "no-store",
+        signal: AbortSignal.timeout(3500),
+      },
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as VocabularyMatchLeaderboard;
   } catch {
     return null;
   }

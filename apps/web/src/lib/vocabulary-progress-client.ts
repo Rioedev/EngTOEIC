@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 import type {
   VocabularyLearnSession,
   VocabularyLearnStudyMode,
+  VocabularyMatchLeaderboard,
   VocabularyProgressResponse,
   VocabularyProgressStatus,
   VocabularyReviewRating,
@@ -202,4 +203,33 @@ export async function clearVocabularyLearnSession(setSlug: string) {
   }
 
   return (await response.json()) as { cleared: boolean };
+}
+
+export async function saveVocabularyMatchResult(
+  setSlug: string,
+  result: {
+    durationMs: number;
+    moves: number;
+    mistakes: number;
+    pairCount: number;
+  },
+) {
+  const accessToken = await getAccessToken();
+  const response = await fetch(
+    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/match-results`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(result),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Không thể lưu thành tích Match (${response.status}).`);
+  }
+
+  return (await response.json()) as VocabularyMatchLeaderboard;
 }

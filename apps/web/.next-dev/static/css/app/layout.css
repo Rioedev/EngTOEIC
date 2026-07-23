@@ -703,6 +703,9 @@
   .grid-cols-5 {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
+  .grid-cols-\[2\.5rem_1fr_auto\] {
+    grid-template-columns: 2.5rem 1fr auto;
+  }
   .grid-cols-\[auto_1fr_auto\] {
     grid-template-columns: auto 1fr auto;
   }
@@ -756,6 +759,13 @@
   }
   .gap-8 {
     gap: calc(var(--spacing) * 8);
+  }
+  .space-y-2 {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));
+      margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));
+    }
   }
   .space-y-3 {
     :where(& > :not(:last-child)) {
@@ -854,6 +864,12 @@
       border-color: color-mix(in oklab, var(--accent) 35%, transparent);
     }
   }
+  .border-\[var\(--accent\)\]\/45 {
+    border-color: var(--accent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+    }
+  }
   .border-amber-300\/20 {
     border-color: color-mix(in srgb, oklch(87.9% 0.169 91.605) 20%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -894,6 +910,12 @@
     border-color: color-mix(in srgb, oklch(81% 0.117 11.638) 35%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       border-color: color-mix(in oklab, var(--color-rose-300) 35%, transparent);
+    }
+  }
+  .border-white\/7 {
+    border-color: color-mix(in srgb, #fff 7%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--color-white) 7%, transparent);
     }
   }
   .border-white\/8 {
@@ -966,6 +988,12 @@
     background-color: color-mix(in srgb, oklch(87.9% 0.169 91.605) 14%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-amber-300) 14%, transparent);
+    }
+  }
+  .bg-amber-300\/16 {
+    background-color: color-mix(in srgb, oklch(87.9% 0.169 91.605) 16%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-amber-300) 16%, transparent);
     }
   }
   .bg-black\/12 {

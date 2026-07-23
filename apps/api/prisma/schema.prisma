@@ -61,6 +61,7 @@ model User {
   termProgress            UserTermProgress[]
   vocabularySessions      VocabularyStudySession[]
   vocabularyLearnSessions VocabularyLearnSession[]
+  vocabularyMatchResults  VocabularyMatchResult[]
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
 }
@@ -80,6 +81,7 @@ model VocabularySet {
   savedBy       SavedVocabularySet[]
   studySessions VocabularyStudySession[]
   learnSessions VocabularyLearnSession[]
+  matchResults  VocabularyMatchResult[]
   createdAt     DateTime                 @default(now())
   updatedAt     DateTime                 @updatedAt
 
@@ -192,6 +194,23 @@ model VocabularyLearnSession {
   @@unique([userId, vocabularySetId])
   @@index([vocabularySetId])
   @@index([userId, lastStudiedAt])
+}
+
+model VocabularyMatchResult {
+  id              String        @id @default(cuid())
+  userId          String        @db.Uuid
+  vocabularySetId String
+  durationMs      Int
+  moves           Int
+  mistakes        Int
+  pairCount       Int
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabularySet   VocabularySet @relation(fields: [vocabularySetId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@index([userId, vocabularySetId, durationMs])
+  @@index([userId, vocabularySetId, createdAt])
+  @@index([vocabularySetId])
 }
 
 model Lesson {

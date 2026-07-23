@@ -8,9 +8,11 @@ import { LearnPlayer } from "@/components/vocabulary/learn-player";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import {
+  getVocabularyMatchResults,
   getVocabularyProgress,
   getVocabularySet,
   type VocabularyLearnSession,
+  type VocabularyMatchLeaderboard,
   type VocabularyTermProgress,
 } from "@/lib/vocabulary";
 
@@ -42,6 +44,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
 
   let initialProgress: VocabularyTermProgress[] = [];
   let initialLearnSession: VocabularyLearnSession | null = null;
+  let initialMatchLeaderboard: VocabularyMatchLeaderboard | null = null;
   let progressPersistenceEnabled = false;
 
   if (source === "api" && isSupabaseConfigured()) {
@@ -52,12 +55,13 @@ export default async function LearnPage({ params }: LearnPageProps) {
 
     if (session) {
       progressPersistenceEnabled = true;
-      const progress = await getVocabularyProgress(
-        vocabularySet.slug,
-        session.access_token,
-      );
+      const [progress, matchLeaderboard] = await Promise.all([
+        getVocabularyProgress(vocabularySet.slug, session.access_token),
+        getVocabularyMatchResults(vocabularySet.slug, session.access_token),
+      ]);
       initialProgress = progress?.data ?? [];
       initialLearnSession = progress?.learnSession ?? null;
+      initialMatchLeaderboard = matchLeaderboard;
     }
   }
 
@@ -99,6 +103,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
           setSlug={vocabularySet.slug}
           initialProgress={initialProgress}
           initialLearnSession={initialLearnSession}
+          initialMatchLeaderboard={initialMatchLeaderboard}
           progressPersistenceEnabled={progressPersistenceEnabled}
         />
       </div>

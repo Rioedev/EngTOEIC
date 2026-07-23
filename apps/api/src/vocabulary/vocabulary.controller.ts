@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from "@nestjs/common";
@@ -32,6 +33,13 @@ type UpdateLearnSessionBody = {
   correctCount?: unknown;
   wrongCount?: unknown;
   wrongTermIds?: unknown;
+};
+
+type CreateMatchResultBody = {
+  durationMs?: unknown;
+  moves?: unknown;
+  mistakes?: unknown;
+  pairCount?: unknown;
 };
 
 @Controller("vocabulary-sets")
@@ -66,6 +74,25 @@ export class VocabularyController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.vocabularyService.findProgress(slug, user.id);
+  }
+
+  @Get(":slug/match-results")
+  @UseGuards(SupabaseAuthGuard)
+  findMatchResults(
+    @Param("slug") slug: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.vocabularyService.findMatchResults(slug, user.id);
+  }
+
+  @Post(":slug/match-results")
+  @UseGuards(SupabaseAuthGuard)
+  createMatchResult(
+    @Param("slug") slug: string,
+    @Body() body: CreateMatchResultBody,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.vocabularyService.createMatchResult(slug, body, user);
   }
 
   @Patch(":slug/session")

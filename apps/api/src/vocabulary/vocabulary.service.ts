@@ -777,6 +777,111 @@ export class VocabularyService {
     return { cleared: result.count > 0 };
   }
 
+  async findMatchResults(slug: string, userId: string) {
+    const vocabularySet = await this.findPublishedSet(slug);
+    const where = {
+      userId,
+      vocabularySetId: vocabularySet.id,
+    };
+    const [results, totalPlays, latestResult] = await this.prisma.$transaction([
+      this.prisma.vocabularyMatchResult.findMany({
+        where,
+        orderBy: [
+          { durationMs: "asc" },
+          { mistakes: "asc" },
+          { moves: "asc" },
+          { createdAt: "desc" },
+        ],
+        take: 10,
+        select: {
+          id: true,
+          durationMs: true,
+          moves: true,
+          mistakes: true,
+          pairCount: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.vocabularyMatchResult.count({ where }),
+      this.prisma.vocabularyMatchResult.findFirst({
+        where,
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true },
+      }),
+    ]);
+
+    return {
+      data: results.map((result, index) => ({
+        ...result,
+        rank: index + 1,
+      })),
+      summary: {
+        totalPlays,
+        bestDurationMs: results[0]?.durationMs ?? null,
+        bestMoves: results[0]?.moves ?? null,
+        lastPlayedAt: latestResult?.createdAt ?? null,
+      },
+    };
+  }
+
+  async createMatchResult(
+    slug: string,
+    values: {
+      durationMs?: unknown;
+      moves?: unknown;
+      mistakes?: unknown;
+      pairCount?: unknown;
+    },
+    user: AuthenticatedUser,
+  ) {
+    const vocabularySet = await this.findPublishedSet(slug);
+    const durationMs = this.parsePositiveNumber(
+      values.durationMs,
+      "durationMs",
+    );
+    const moves = this.parsePositiveNumber(values.moves, "moves");
+    const mistakes = this.parseNonNegativeInteger(values.mistakes, "mistakes");
+    const pairCount = this.parsePositiveNumber(values.pairCount, "pairCount");
+
+    if (durationMs > 60 * 60 * 1000) {
+      throw new BadRequestException("durationMs must not exceed one hour.");
+    }
+    if (pairCount > 6 || pairCount > vocabularySet._count.terms) {
+      throw new BadRequestException(
+        `pairCount must not exceed ${Math.min(6, vocabularySet._count.terms)}.`,
+      );
+    }
+    if (moves < pairCount) {
+      throw new BadRequestException(
+        "moves must be greater than or equal to pairCount.",
+      );
+    }
+    if (mistakes > moves - pairCount) {
+      throw new BadRequestException(
+        "mistakes cannot exceed the number of unsuccessful moves.",
+      );
+    }
+
+    await this.authService.syncUser(user);
+    const result = await this.prisma.vocabularyMatchResult.create({
+      data: {
+        userId: user.id,
+        vocabularySetId: vocabularySet.id,
+        durationMs,
+        moves,
+        mistakes,
+        pairCount,
+      },
+      select: { id: true },
+    });
+    const leaderboard = await this.findMatchResults(slug, user.id);
+
+    return {
+      ...leaderboard,
+      latestResultId: result.id,
+    };
+  }
+
   private async findPublishedSet(slug: string) {
     const vocabularySet = await this.prisma.vocabularySet.findFirst({
       where: { slug, isPublished: true },
