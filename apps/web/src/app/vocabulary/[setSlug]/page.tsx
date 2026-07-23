@@ -7,6 +7,7 @@ import {
   BookOpenText,
   BriefcaseBusiness,
   CheckCircle2,
+  Keyboard,
   Layers3,
   Sparkles,
   Volume2,
@@ -126,6 +127,13 @@ export default async function VocabularyDetailPage({
               >
                 <BrainCircuit className="size-5" aria-hidden="true" />
                 Bắt đầu Learn
+              </Link>
+              <Link
+                href={`/vocabulary/${vocabularySet.slug}/write`}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-white/9 px-6 text-sm font-semibold text-white/78 transition hover:bg-white/14 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              >
+                <Keyboard className="size-5" aria-hidden="true" />
+                Luyện Viết từ
               </Link>
               <Link
                 href={`/vocabulary/${vocabularySet.slug}/flashcards`}

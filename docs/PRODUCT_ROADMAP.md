@@ -195,7 +195,7 @@ Tham khảo trải nghiệm: [Quizlet Study Modes](https://quizlet.com/en-gb/fea
 
 ### 6.6. Các chế độ luyện từ
 
-- [ ] `VMODE-001` Write: nhìn nghĩa và nhập từ.
+- [x] `VMODE-001` Write: nhìn nghĩa và nhập từ — route riêng `/vocabulary/[setSlug]/write`, kiểm tra chính tả, bắt buộc gõ lại đáp án sai và lưu checkpoint.
 - [ ] `VMODE-002` Spell: nghe audio và nhập từ.
 - [ ] `VMODE-003` Test: tạo bài kiểm tra từ bộ thẻ.
 - [ ] `VMODE-004` Match: ghép term với definition theo thời gian.

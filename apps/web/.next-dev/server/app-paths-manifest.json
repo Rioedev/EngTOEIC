@@ -3,5 +3,6 @@
   "/vocabulary/page": "app/vocabulary/page.js",
   "/vocabulary/[setSlug]/page": "app/vocabulary/[setSlug]/page.js",
   "/vocabulary/review/page": "app/vocabulary/review/page.js",
-  "/vocabulary/[setSlug]/flashcards/page": "app/vocabulary/[setSlug]/flashcards/page.js"
+  "/vocabulary/[setSlug]/flashcards/page": "app/vocabulary/[setSlug]/flashcards/page.js",
+  "/vocabulary/[setSlug]/write/page": "app/vocabulary/[setSlug]/write/page.js"
 }

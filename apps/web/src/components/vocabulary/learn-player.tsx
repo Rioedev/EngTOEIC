@@ -42,6 +42,7 @@ type LearnPlayerProps = {
   initialProgress: VocabularyTermProgress[];
   initialLearnSession: VocabularyLearnSession | null;
   progressPersistenceEnabled: boolean;
+  lockedStudyMode?: VocabularyLearnStudyMode;
 };
 
 type QuestionMode =
@@ -493,6 +494,7 @@ export function LearnPlayer({
   initialProgress,
   initialLearnSession,
   progressPersistenceEnabled,
+  lockedStudyMode,
 }: LearnPlayerProps) {
   const orderedTerms = useMemo(
     () => [...terms].sort((first, second) => first.order - second.order),
@@ -509,6 +511,8 @@ export function LearnPlayer({
       if (
         !initialLearnSession ||
         initialLearnSession.studyMode === "match" ||
+        (lockedStudyMode &&
+          initialLearnSession.studyMode !== lockedStudyMode) ||
         initialLearnSession.currentIndex >=
           initialLearnSession.queueTermIds.length
       ) {
@@ -531,7 +535,9 @@ export function LearnPlayer({
   const [targetCount, setTargetCount] = useState(
     targetOptions[0] ?? orderedTerms.length,
   );
-  const [studyMode, setStudyMode] = useState<StudyMode>("mixed");
+  const [studyMode, setStudyMode] = useState<StudyMode>(
+    lockedStudyMode ?? "mixed",
+  );
   const [started, setStarted] = useState(false);
   const [queue, setQueue] = useState<VocabularyTerm[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -555,6 +561,9 @@ export function LearnPlayer({
   const checkpointFailed = useRef(false);
 
   const currentTerm = queue[currentIndex];
+  const SetupIcon = lockedStudyMode
+    ? studyModeMeta[lockedStudyMode].icon
+    : Sparkles;
   const completed = started && currentIndex >= queue.length;
   const combinedSaveState: SaveState =
     saveState === "error" || checkpointState === "error"
@@ -902,21 +911,24 @@ export function LearnPlayer({
       >
         <div className="flex items-start gap-4">
           <span className="grid size-12 flex-none place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
-            <Sparkles className="size-6" aria-hidden="true" />
+            <SetupIcon className="size-6" aria-hidden="true" />
           </span>
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--accent)]">
-              Trung tâm luyện tập
+              {lockedStudyMode ? "Chế độ luyện riêng" : "Trung tâm luyện tập"}
             </p>
             <h1
               id="learn-setup-title"
               className="mt-2 text-3xl font-black tracking-[-0.018em] sm:text-4xl"
             >
-              Chọn cách bạn muốn luyện từ
+              {lockedStudyMode === "write"
+                ? "Nhìn nghĩa, tự nhớ và viết lại."
+                : "Chọn cách bạn muốn luyện từ"}
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-7 text-white/60">
-              Học tổng hợp hoặc tập trung riêng vào một kỹ năng như ghép thẻ,
-              nghe rồi viết và chủ động nhớ từ.
+              {lockedStudyMode === "write"
+                ? "Tập trung vào khả năng chủ động nhớ từ tiếng Anh. Đáp án sai phải được gõ lại chính xác trước khi chuyển tiếp."
+                : "Học tổng hợp hoặc tập trung riêng vào một kỹ năng như ghép thẻ, nghe rồi viết và chủ động nhớ từ."}
             </p>
           </div>
         </div>
@@ -970,59 +982,61 @@ export function LearnPlayer({
           </section>
         ) : null}
 
-        <fieldset className="mt-8">
-          <legend className="text-sm font-black text-white/78">
-            Chọn chế độ học
-          </legend>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(
-              Object.entries(studyModeMeta) as [
-                StudyMode,
-                (typeof studyModeMeta)[StudyMode],
-              ][]
-            ).map(([value, item]) => {
-              const StudyModeIcon = item.icon;
-              const selected = studyMode === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  className={`group relative min-h-32 overflow-hidden rounded-2xl border p-4 text-left transition motion-reduce:transition-none ${
-                    selected
-                      ? "border-[var(--accent)] bg-white/12 ring-2 ring-[var(--accent-glow)]"
-                      : "border-white/10 bg-white/6 hover:border-white/20 hover:bg-white/10"
-                  }`}
-                  aria-pressed={selected}
-                  onClick={() => setStudyMode(value)}
-                >
-                  <span
-                    className={`absolute inset-0 bg-gradient-to-br ${item.accent} opacity-70`}
-                    aria-hidden="true"
-                  />
-                  <span className="relative flex items-start gap-3">
-                    <span className="grid size-10 flex-none place-items-center rounded-xl bg-white/10 text-[var(--accent)]">
-                      <StudyModeIcon className="size-5" aria-hidden="true" />
-                    </span>
-                    <span>
-                      <strong className="block text-sm font-black text-white">
-                        {item.label}
-                      </strong>
-                      <span className="mt-1.5 block text-xs font-semibold leading-5 text-white/52">
-                        {item.description}
-                      </span>
-                    </span>
-                  </span>
-                  {selected ? (
-                    <CheckCircle2
-                      className="absolute right-3 top-3 size-4 text-[var(--accent)]"
+        {!lockedStudyMode ? (
+          <fieldset className="mt-8">
+            <legend className="text-sm font-black text-white/78">
+              Chọn chế độ học
+            </legend>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {(
+                Object.entries(studyModeMeta) as [
+                  StudyMode,
+                  (typeof studyModeMeta)[StudyMode],
+                ][]
+              ).map(([value, item]) => {
+                const StudyModeIcon = item.icon;
+                const selected = studyMode === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`group relative min-h-32 overflow-hidden rounded-2xl border p-4 text-left transition motion-reduce:transition-none ${
+                      selected
+                        ? "border-[var(--accent)] bg-white/12 ring-2 ring-[var(--accent-glow)]"
+                        : "border-white/10 bg-white/6 hover:border-white/20 hover:bg-white/10"
+                    }`}
+                    aria-pressed={selected}
+                    onClick={() => setStudyMode(value)}
+                  >
+                    <span
+                      className={`absolute inset-0 bg-gradient-to-br ${item.accent} opacity-70`}
                       aria-hidden="true"
                     />
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
+                    <span className="relative flex items-start gap-3">
+                      <span className="grid size-10 flex-none place-items-center rounded-xl bg-white/10 text-[var(--accent)]">
+                        <StudyModeIcon className="size-5" aria-hidden="true" />
+                      </span>
+                      <span>
+                        <strong className="block text-sm font-black text-white">
+                          {item.label}
+                        </strong>
+                        <span className="mt-1.5 block text-xs font-semibold leading-5 text-white/52">
+                          {item.description}
+                        </span>
+                      </span>
+                    </span>
+                    {selected ? (
+                      <CheckCircle2
+                        className="absolute right-3 top-3 size-4 text-[var(--accent)]"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        ) : null}
 
         {studyMode === "mixed" ? (
           <div className="mt-5 rounded-2xl border border-white/9 bg-black/12 p-4">
@@ -1148,7 +1162,7 @@ export function LearnPlayer({
           onClick={() => setStarted(false)}
         >
           <RefreshCcw className="size-4" aria-hidden="true" />
-          Chọn chế độ khác
+          {lockedStudyMode ? "Tạo lượt viết mới" : "Chọn chế độ khác"}
         </button>
       </section>
     );
