@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum ToeicSkill {
+  LISTENING
+  READING
+}
+
+enum ToeicPart {
+  PART_1
+  PART_2
+  PART_3
+  PART_4
+  PART_5
+  PART_6
+  PART_7
+}
+
+enum QuestionChoice {
+  A
+  B
+  C
+  D
+}
+
+enum UserRole {
+  LEARNER
+  EDITOR
+  ADMIN
+}
+
+enum VocabularyProgressStatus {
+  NEW
+  LEARNING
+  FAMILIAR
+  MASTERED
+}
+
+model User {
+  id                  String                   @id @db.Uuid
+  email               String                   @unique
+  displayName         String?
+  avatarUrl           String?
+  role                UserRole                 @default(LEARNER)
+  attempts            TestAttempt[]
+  savedVocabularySets SavedVocabularySet[]
+  termProgress        UserTermProgress[]
+  vocabularySessions  VocabularyStudySession[]
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+}
+
+model VocabularySet {
+  id            String                   @id @default(cuid())
+  title         String
+  slug          String                   @unique
+  description   String?
+  topic         String?
+  part          ToeicPart?
+  difficulty    String?
+  imageUrl      String?
+  isPublished   Boolean                  @default(false)
+  order         Int                      @default(0)
+  terms         VocabularyTerm[]
+  savedBy       SavedVocabularySet[]
+  studySessions VocabularyStudySession[]
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  @@index([isPublished, order])
+  @@index([part])
+}
+
+model VocabularyTerm {
+  id               String                   @id @default(cuid())
+  vocabularySetId  String
+  vocabularySet    VocabularySet            @relation(fields: [vocabularySetId], references: [id], onDelete: Cascade)
+  term             String
+  meaningVi        String
+  ipa              String?
+  partOfSpeech     String?
+  audioUrl         String?
+  exampleEn        String?
+  exampleVi        String?
+  imageUrl         String?
+  collocations     String[]                 @default([])
+  synonyms         String[]                 @default([])
+  antonyms         String[]                 @default([])
+  sourceName       String?
+  sourceUrl        String?
+  sourceLicense    String?
+  sourceExternalId String?
+  order            Int                      @default(0)
+  userProgress     UserTermProgress[]
+  studySessions    VocabularyStudySession[]
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  @@unique([vocabularySetId, term])
+  @@index([vocabularySetId, order])
+  @@index([term])
+}
+
+model SavedVocabularySet {
+  id              String        @id @default(cuid())
+  userId          String        @db.Uuid
+  vocabularySetId String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabularySet   VocabularySet @relation(fields: [vocabularySetId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@unique([userId, vocabularySetId])
+  @@index([vocabularySetId])
+}
+
+model UserTermProgress {
+  id             String                   @id @default(cuid())
+  userId         String                   @db.Uuid
+  termId         String
+  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  term           VocabularyTerm           @relation(fields: [termId], references: [id], onDelete: Cascade)
+  status         VocabularyProgressStatus @default(NEW)
+  reviewCount    Int                      @default(0)
+  lastReviewedAt DateTime?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  @@unique([userId, termId])
+  @@index([termId])
+  @@index([userId, status])
+}
+
+model VocabularyStudySession {
+  id              String          @id @default(cuid())
+  userId          String          @db.Uuid
+  vocabularySetId String
+  currentTermId   String?
+  currentIndex    Int             @default(0)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabularySet   VocabularySet   @relation(fields: [vocabularySetId], references: [id], onDelete: Cascade)
+  currentTerm     VocabularyTerm? @relation(fields: [currentTermId], references: [id], onDelete: SetNull)
+  lastStudiedAt   DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([userId, vocabularySetId])
+  @@index([vocabularySetId])
+  @@index([currentTermId])
+  @@index([userId, lastStudiedAt])
+}
+
+model Lesson {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  description String?
+  skill       ToeicSkill
+  part        ToeicPart?
+  order       Int        @default(0)
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Question {
+  id            String          @id @default(cuid())
+  lessonId      String?
+  lesson        Lesson?         @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  part          ToeicPart
+  skill         ToeicSkill
+  prompt        String
+  choiceA       String
+  choiceB       String
+  choiceC       String
+  choiceD       String?
+  correctChoice QuestionChoice
+  explanation   String
+  transcript    String?
+  audioUrl      String?
+  imageUrl      String?
+  answers       AttemptAnswer[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model TestAttempt {
+  id          String          @id @default(cuid())
+  userId      String?         @db.Uuid
+  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title       String
+  score       Int             @default(0)
+  total       Int             @default(0)
+  durationSec Int             @default(0)
+  answers     AttemptAnswer[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model AttemptAnswer {
+  id             String         @id @default(cuid())
+  attemptId      String
+  attempt        TestAttempt    @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId     String
+  question       Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedChoice QuestionChoice
+  isCorrect      Boolean
+  createdAt      DateTime       @default(now())
+}

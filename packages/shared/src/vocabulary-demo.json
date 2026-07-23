@@ -1,0 +1,194 @@
+{
+  "set": {
+    "title": "TOEIC Office Basics",
+    "slug": "toeic-office-basics",
+    "description": "20 từ vựng nền tảng thường gặp trong môi trường công sở và bài thi TOEIC.",
+    "topic": "Office and business",
+    "part": "PART_5",
+    "difficulty": "BEGINNER",
+    "isPublished": true,
+    "order": 1
+  },
+  "terms": [
+    {
+      "term": "agenda",
+      "meaningVi": "chương trình nghị sự, nội dung cuộc họp",
+      "ipa": "/əˈdʒen.də/",
+      "partOfSpeech": "noun",
+      "exampleEn": "The meeting agenda was emailed to all department heads.",
+      "exampleVi": "Chương trình cuộc họp đã được gửi email cho tất cả trưởng phòng.",
+      "collocations": ["meeting agenda", "set the agenda"]
+    },
+    {
+      "term": "applicant",
+      "meaningVi": "ứng viên, người nộp đơn",
+      "ipa": "/ˈæp.lɪ.kənt/",
+      "partOfSpeech": "noun",
+      "exampleEn": "Each applicant must submit two professional references.",
+      "exampleVi": "Mỗi ứng viên phải nộp hai thư giới thiệu nghề nghiệp.",
+      "collocations": ["job applicant", "successful applicant"]
+    },
+    {
+      "term": "appointment",
+      "meaningVi": "cuộc hẹn; sự bổ nhiệm",
+      "ipa": "/əˈpɔɪnt.mənt/",
+      "partOfSpeech": "noun",
+      "exampleEn": "I have an appointment with the regional manager at ten.",
+      "exampleVi": "Tôi có cuộc hẹn với quản lý khu vực lúc mười giờ.",
+      "collocations": ["make an appointment", "confirm an appointment"]
+    },
+    {
+      "term": "branch",
+      "meaningVi": "chi nhánh",
+      "ipa": "/bræntʃ/",
+      "partOfSpeech": "noun",
+      "exampleEn": "The bank will open a new branch near the train station.",
+      "exampleVi": "Ngân hàng sẽ mở một chi nhánh mới gần ga tàu.",
+      "collocations": ["local branch", "branch office"]
+    },
+    {
+      "term": "budget",
+      "meaningVi": "ngân sách",
+      "ipa": "/ˈbʌdʒ.ɪt/",
+      "partOfSpeech": "noun",
+      "exampleEn": "The advertising campaign stayed within its approved budget.",
+      "exampleVi": "Chiến dịch quảng cáo vẫn nằm trong ngân sách đã được phê duyệt.",
+      "collocations": ["annual budget", "within budget"]
+    },
+    {
+      "term": "conference",
+      "meaningVi": "hội nghị",
+      "ipa": "/ˈkɒn.fər.əns/",
+      "partOfSpeech": "noun",
+      "exampleEn": "More than two hundred guests attended the sales conference.",
+      "exampleVi": "Hơn hai trăm khách mời đã tham dự hội nghị bán hàng.",
+      "collocations": ["annual conference", "conference room"]
+    },
+    {
+      "term": "contract",
+      "meaningVi": "hợp đồng",
+      "ipa": "/ˈkɒn.trækt/",
+      "partOfSpeech": "noun",
+      "exampleEn": "Please review the contract before signing it.",
+      "exampleVi": "Vui lòng xem lại hợp đồng trước khi ký.",
+      "collocations": ["sign a contract", "renew a contract"]
+    },
+    {
+      "term": "customer",
+      "meaningVi": "khách hàng",
+      "ipa": "/ˈkʌs.tə.mər/",
+      "partOfSpeech": "noun",
+      "exampleEn": "Customer feedback helped us improve the online checkout process.",
+      "exampleVi": "Phản hồi của khách hàng giúp chúng tôi cải thiện quy trình thanh toán trực tuyến.",
+      "collocations": ["customer service", "customer feedback"]
+    },
+    {
+      "term": "deadline",
+      "meaningVi": "hạn chót",
+      "ipa": "/ˈded.laɪn/",
+      "partOfSpeech": "noun",
+      "exampleEn": "The project team completed the report before the deadline.",
+      "exampleVi": "Nhóm dự án đã hoàn thành báo cáo trước hạn chót.",
+      "collocations": ["meet a deadline", "project deadline"]
+    },
+    {
+      "term": "delivery",
+      "meaningVi": "việc giao hàng; lô hàng được giao",
+      "ipa": "/dɪˈlɪv.ər.i/",
+      "partOfSpeech": "noun",
+      "exampleEn": "Free delivery is available for orders over fifty dollars.",
+      "exampleVi": "Đơn hàng trên năm mươi đô la được giao miễn phí.",
+      "collocations": ["delivery date", "free delivery"]
+    },
+    {
+      "term": "department",
+      "meaningVi": "phòng, ban, bộ phận",
+      "ipa": "/dɪˈpɑːt.mənt/",
+      "partOfSpeech": "noun",
+      "exampleEn": "Contact the accounting department if you have a billing question.",
+      "exampleVi": "Hãy liên hệ phòng kế toán nếu bạn có câu hỏi về hóa đơn.",
+      "collocations": ["sales department", "department head"]
+    },
+    {
+      "term": "employee",
+      "meaningVi": "nhân viên, người lao động",
+      "ipa": "/ɪmˈplɔɪ.iː/",
+      "partOfSpeech": "noun",
+      "exampleEn": "Every new employee receives safety training on the first day.",
+      "exampleVi": "Mỗi nhân viên mới đều được đào tạo an toàn vào ngày đầu tiên.",
+      "collocations": ["full-time employee", "employee benefits"]
+    },
+    {
+      "term": "equipment",
+      "meaningVi": "thiết bị, dụng cụ",
+      "ipa": "/ɪˈkwɪp.mənt/",
+      "partOfSpeech": "noun",
+      "exampleEn": "The laboratory equipment is inspected every six months.",
+      "exampleVi": "Thiết bị phòng thí nghiệm được kiểm tra sáu tháng một lần.",
+      "collocations": ["office equipment", "safety equipment"]
+    },
+    {
+      "term": "invoice",
+      "meaningVi": "hóa đơn yêu cầu thanh toán",
+      "ipa": "/ˈɪn.vɔɪs/",
+      "partOfSpeech": "noun",
+      "exampleEn": "The supplier sent an invoice for the replacement parts.",
+      "exampleVi": "Nhà cung cấp đã gửi hóa đơn cho các bộ phận thay thế.",
+      "collocations": ["issue an invoice", "pay an invoice"]
+    },
+    {
+      "term": "maintenance",
+      "meaningVi": "việc bảo trì, bảo dưỡng",
+      "ipa": "/ˈmeɪn.tən.əns/",
+      "partOfSpeech": "noun",
+      "exampleEn": "The elevator will be unavailable during scheduled maintenance.",
+      "exampleVi": "Thang máy sẽ tạm ngừng hoạt động trong thời gian bảo trì định kỳ.",
+      "collocations": ["routine maintenance", "maintenance work"]
+    },
+    {
+      "term": "manager",
+      "meaningVi": "người quản lý, trưởng bộ phận",
+      "ipa": "/ˈmæn.ɪ.dʒər/",
+      "partOfSpeech": "noun",
+      "exampleEn": "The store manager approved the customer's refund.",
+      "exampleVi": "Quản lý cửa hàng đã phê duyệt khoản hoàn tiền cho khách hàng.",
+      "collocations": ["general manager", "regional manager"]
+    },
+    {
+      "term": "meeting",
+      "meaningVi": "cuộc họp, buổi gặp mặt",
+      "ipa": "/ˈmiː.tɪŋ/",
+      "partOfSpeech": "noun",
+      "exampleEn": "Tomorrow's staff meeting has been moved to the main auditorium.",
+      "exampleVi": "Cuộc họp nhân viên ngày mai đã được chuyển đến hội trường chính.",
+      "collocations": ["staff meeting", "attend a meeting"]
+    },
+    {
+      "term": "negotiate",
+      "meaningVi": "đàm phán, thương lượng",
+      "ipa": "/nɪˈɡəʊ.ʃi.eɪt/",
+      "partOfSpeech": "verb",
+      "exampleEn": "The two companies are negotiating a long-term supply agreement.",
+      "exampleVi": "Hai công ty đang đàm phán một thỏa thuận cung ứng dài hạn.",
+      "collocations": ["negotiate a contract", "negotiate with a supplier"]
+    },
+    {
+      "term": "purchase",
+      "meaningVi": "mua; sự mua hàng",
+      "ipa": "/ˈpɜː.tʃəs/",
+      "partOfSpeech": "verb, noun",
+      "exampleEn": "Customers can purchase tickets through the company website.",
+      "exampleVi": "Khách hàng có thể mua vé qua trang web của công ty.",
+      "collocations": ["purchase order", "make a purchase"]
+    },
+    {
+      "term": "schedule",
+      "meaningVi": "lịch trình; lên lịch",
+      "ipa": "/ˈʃed.juːl/",
+      "partOfSpeech": "noun, verb",
+      "exampleEn": "The training session is scheduled for Friday afternoon.",
+      "exampleVi": "Buổi đào tạo được lên lịch vào chiều thứ Sáu.",
+      "collocations": ["work schedule", "ahead of schedule"]
+    }
+  ]
+}

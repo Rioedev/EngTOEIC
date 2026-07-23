@@ -1,0 +1,30 @@
+{
+  "name": "engtoeic",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TOEIC learning platform base with Next.js, NestJS, Zustand, Prisma, and Supabase-ready storage URLs.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev:web",
+    "dev:web": "npm run dev -w @engtoeic/web",
+    "dev:api": "npm run start:dev -w @engtoeic/api",
+    "build": "npm run build -ws --if-present",
+    "lint": "npm run lint -ws --if-present",
+    "format": "prettier --write .",
+    "prisma:generate": "prisma generate --schema apps/api/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema apps/api/prisma/schema.prisma",
+    "prisma:seed": "prisma db seed --schema apps/api/prisma/schema.prisma"
+  },
+  "prisma": {
+    "seed": "node apps/api/prisma/seed.js"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  }
+}
