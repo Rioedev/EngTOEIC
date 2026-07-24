@@ -7,7 +7,10 @@ export function ProgressSidebar() {
     <aside className="progress-sidebar" aria-label="Tiến độ học hôm nay">
       <div className="progress-task-stack">
         {progressCards.map((card) => (
-          <article className={`progress-card glass-card progress-card-${card.tone}`} key={card.title}>
+          <article
+            className={`progress-card glass-card progress-card-${card.tone}`}
+            key={card.title}
+          >
             <span className="progress-card-eyebrow">{card.eyebrow}</span>
             <strong className="progress-card-title">{card.title}</strong>
           </article>

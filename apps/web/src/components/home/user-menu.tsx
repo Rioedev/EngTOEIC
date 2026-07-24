@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { LogOut, UserRoundCog } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
@@ -55,7 +56,14 @@ export function UserMenu({ displayName, email, avatarUrl }: UserMenuProps) {
         onClick={() => setIsOpen((open) => !open)}
       >
         {avatarUrl ? (
-          <img src={avatarUrl} alt="" aria-hidden="true" />
+          <Image
+            src={avatarUrl}
+            alt=""
+            width={44}
+            height={44}
+            aria-hidden="true"
+            unoptimized
+          />
         ) : (
           <span aria-hidden="true">{initial}</span>
         )}
@@ -65,7 +73,17 @@ export function UserMenu({ displayName, email, avatarUrl }: UserMenuProps) {
         <div className="home-user-popover" id={menuId} role="menu">
           <div className="home-user-summary">
             <span className="home-user-summary-avatar" aria-hidden="true">
-              {avatarUrl ? <img src={avatarUrl} alt="" /> : initial}
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt=""
+                  width={38}
+                  height={38}
+                  unoptimized
+                />
+              ) : (
+                initial
+              )}
             </span>
             <div>
               <p className="home-user-summary-label">Tài khoản</p>

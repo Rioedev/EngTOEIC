@@ -261,9 +261,7 @@ function visibilityMeta(visibility: VocabularySet["visibility"]) {
   return { label: "Riêng tư", icon: LockKeyhole, className: "text-white/52" };
 }
 
-export function VocabularyManager({
-  initialLibrary,
-}: VocabularyManagerProps) {
+export function VocabularyManager({ initialLibrary }: VocabularyManagerProps) {
   const [library, setLibrary] = useState(initialLibrary);
   const [activeFolder, setActiveFolder] = useState("all");
   const [search, setSearch] = useState("");
@@ -297,8 +295,7 @@ export function VocabularyManager({
 
   async function refreshLibrary(message?: string) {
     const response = await import("@/lib/vocabulary-management-client").then(
-      ({ loadPersonalVocabularyLibrary }) =>
-        loadPersonalVocabularyLibrary(),
+      ({ loadPersonalVocabularyLibrary }) => loadPersonalVocabularyLibrary(),
     );
     setLibrary(response);
     if (message) setStatus(message);
@@ -316,9 +313,7 @@ export function VocabularyManager({
       const detail = await loadPersonalVocabularySet(vocabularySet.id);
       setEditor(editableSet(detail));
     } catch (error) {
-      setStatus(
-        error instanceof Error ? error.message : "Không thể mở bộ từ.",
-      );
+      setStatus(error instanceof Error ? error.message : "Không thể mở bộ từ.");
     } finally {
       setBusy(false);
     }
@@ -345,9 +340,7 @@ export function VocabularyManager({
         editor.id ? "Đã cập nhật bộ từ." : "Đã tạo bộ từ mới.",
       );
     } catch (error) {
-      setStatus(
-        error instanceof Error ? error.message : "Chưa thể lưu bộ từ.",
-      );
+      setStatus(error instanceof Error ? error.message : "Chưa thể lưu bộ từ.");
     } finally {
       setBusy(false);
     }
@@ -442,7 +435,10 @@ export function VocabularyManager({
         <aside className="glass-card h-fit p-4 lg:sticky lg:top-28">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-sm font-semibold text-white/82">Thư mục</h2>
-            <Folder className="size-4 text-[var(--accent)]" aria-hidden="true" />
+            <Folder
+              className="size-4 text-[var(--accent)]"
+              aria-hidden="true"
+            />
           </div>
 
           <nav className="mt-3 space-y-1" aria-label="Lọc theo thư mục">
@@ -494,7 +490,10 @@ export function VocabularyManager({
             ))}
           </nav>
 
-          <form className="mt-4 border-t border-white/8 pt-4" onSubmit={createFolder}>
+          <form
+            className="mt-4 border-t border-white/8 pt-4"
+            onSubmit={createFolder}
+          >
             <label className="sr-only" htmlFor="new-folder-name">
               Tên thư mục mới
             </label>
@@ -584,7 +583,10 @@ export function VocabularyManager({
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-full bg-white/7 px-2.5 py-1 text-[0.68rem] ${visibility.className}`}
                       >
-                        <VisibilityIcon className="size-3.5" aria-hidden="true" />
+                        <VisibilityIcon
+                          className="size-3.5"
+                          aria-hidden="true"
+                        />
                         {visibility.label}
                       </span>
                     </div>
@@ -1044,7 +1046,9 @@ function VocabularySetEditor({
                     </legend>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
                       <label className="lg:col-span-2">
-                        <span className="text-xs text-white/48">Từ / cụm từ</span>
+                        <span className="text-xs text-white/48">
+                          Từ / cụm từ
+                        </span>
                         <input
                           className="mt-1.5 min-h-11 w-full rounded-xl border border-white/9 bg-black/18 px-3 text-sm outline-none focus:border-[var(--accent)]"
                           value={term.term}
@@ -1085,7 +1089,11 @@ function VocabularySetEditor({
                           value={term.partOfSpeech}
                           maxLength={80}
                           onChange={(event) =>
-                            updateTerm(index, "partOfSpeech", event.target.value)
+                            updateTerm(
+                              index,
+                              "partOfSpeech",
+                              event.target.value,
+                            )
                           }
                         />
                       </label>
@@ -1160,11 +1168,14 @@ function VocabularySetEditor({
                 onChange={(visibility) =>
                   setValues({
                     ...values,
-                    visibility: visibility as EditableVocabularySet["visibility"],
+                    visibility:
+                      visibility as EditableVocabularySet["visibility"],
                   })
                 }
               />
-              <label className="mt-4 block text-xs text-white/48">Thư mục</label>
+              <label className="mt-4 block text-xs text-white/48">
+                Thư mục
+              </label>
               <ThemedSelect
                 id="set-folder"
                 value={values.folderId}
@@ -1208,9 +1219,7 @@ function VocabularySetEditor({
                 id="vocabulary-file-import"
                 type="file"
                 accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                onChange={(event) =>
-                  void importFile(event.target.files?.[0])
-                }
+                onChange={(event) => void importFile(event.target.files?.[0])}
               />
               <label
                 htmlFor="vocabulary-file-import"

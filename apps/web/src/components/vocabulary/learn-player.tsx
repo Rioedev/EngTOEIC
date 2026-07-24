@@ -424,13 +424,13 @@ function MatchingSession({
       shuffle(
         activeTerms.flatMap((term) => [
           {
-            id: `${term.id}-term`,
+            id: `${round}-${term.id}-term`,
             termId: term.id,
             label: term.term,
             kind: "term" as const,
           },
           {
-            id: `${term.id}-meaning`,
+            id: `${round}-${term.id}-meaning`,
             termId: term.id,
             label: term.meaningVi,
             kind: "meaning" as const,
@@ -840,7 +840,7 @@ export function LearnPlayer({
   const ModeIcon = modeMeta[mode].icon;
   const options = useMemo(
     () => (currentTerm ? buildMeaningOptions(orderedTerms, currentTerm) : []),
-    [currentIndex, currentTerm, orderedTerms],
+    [currentTerm, orderedTerms],
   );
   const statementTerm = useMemo(() => {
     if (!currentTerm || mode !== "true-false") return null;

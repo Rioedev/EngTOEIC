@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { EmailPasswordAuthForm } from "@/components/auth/email-password-auth-form";
 import { TimeAwareBackground } from "@/components/home/time-aware-background";
@@ -42,7 +43,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <TimeAwareBackground />
       <div className="auth-backdrop" aria-hidden="true" />
       <section className="auth-card" aria-labelledby="login-title">
-        <a className="auth-brand" href="/" aria-label="Về trang chủ EngTOEIC">
+        <Link
+          className="auth-brand"
+          href="/"
+          aria-label="Về trang chủ EngTOEIC"
+        >
           <Image
             src="/images/engtoeic-lion-logo-transparent.png"
             alt=""
@@ -51,7 +56,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             priority
           />
           <span>EngTOEIC</span>
-        </a>
+        </Link>
 
         <div className="auth-heading">
           <p className="auth-kicker">Bắt đầu hành trình của bạn</p>

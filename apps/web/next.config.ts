@@ -7,7 +7,8 @@ import { loadEnvFile } from "node:process";
 try {
   loadEnvFile(resolve(process.cwd(), "../../.env"));
 } catch (error) {
-  const code = error instanceof Error && "code" in error ? error.code : undefined;
+  const code =
+    error instanceof Error && "code" in error ? error.code : undefined;
 
   if (code !== "ENOENT") {
     throw error;
@@ -27,8 +28,8 @@ const nextConfig: NextConfig = {
       process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-      process.env.SUPABASE_PUBLISHABLE_KEY
-  }
+      process.env.SUPABASE_PUBLISHABLE_KEY,
+  },
 };
 
 export default nextConfig;

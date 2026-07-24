@@ -96,13 +96,10 @@ export function updatePersonalVocabularySet(
   id: string,
   values: EditableVocabularySet,
 ) {
-  return request<VocabularySet>(
-    `/vocabulary-sets/${encodeURIComponent(id)}`,
-    {
-      method: "PATCH",
-      body: JSON.stringify(values),
-    },
-  );
+  return request<VocabularySet>(`/vocabulary-sets/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(values),
+  });
 }
 
 export function deletePersonalVocabularySet(id: string) {

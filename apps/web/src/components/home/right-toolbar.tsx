@@ -6,7 +6,12 @@ export function RightToolbar() {
     <>
       <aside className="right-toolbar" aria-label="Công cụ nhanh">
         {rightToolbarActions.map((action) => (
-          <button className="glass-icon" key={action.label} type="button" title={action.label}>
+          <button
+            className="glass-icon"
+            key={action.label}
+            type="button"
+            title={action.label}
+          >
             <action.icon size={19} strokeWidth={2} aria-hidden="true" />
             <span className="sr-only">{action.label}</span>
           </button>

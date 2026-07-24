@@ -112,10 +112,7 @@ export class VocabularyController {
 
   @Post(":slug/copy")
   @UseGuards(SupabaseAuthGuard)
-  copySet(
-    @Param("slug") slug: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
+  copySet(@Param("slug") slug: string, @CurrentUser() user: AuthenticatedUser) {
     return this.vocabularyManagement.copyPublicSet(slug, user);
   }
 

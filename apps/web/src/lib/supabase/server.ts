@@ -19,7 +19,7 @@ export async function createClient() {
         } catch {
           // Server Components cannot write cookies. Middleware refreshes them.
         }
-      }
-    }
+      },
+    },
   });
 }

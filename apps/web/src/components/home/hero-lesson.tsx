@@ -7,11 +7,12 @@ export function HeroLesson() {
         <div className="hero-meta">
           <p className="hero-eyebrow">Bài học dành riêng cho bạn</p>
           <div className="hero-duration glass-pill">
-            <Clock3 size={15} aria-hidden="true" />
-            5 phút
+            <Clock3 size={15} aria-hidden="true" />5 phút
           </div>
         </div>
-        <h1 className="home-hero-title">Chào mừng trở lại — cùng khởi động nhanh nhé!</h1>
+        <h1 className="home-hero-title">
+          Chào mừng trở lại — cùng khởi động nhanh nhé!
+        </h1>
 
         <a className="cta-button" href="#quick-practice">
           Bắt đầu bài học

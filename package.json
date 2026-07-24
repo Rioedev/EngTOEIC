@@ -12,8 +12,12 @@
     "dev:web": "npm run dev -w @engtoeic/web",
     "dev:api": "npm run start:dev -w @engtoeic/api",
     "build": "npm run build -ws --if-present",
-    "lint": "npm run lint -ws --if-present",
+    "lint": "npm run lint:eslint && npm run typecheck",
+    "lint:eslint": "npm run lint -ws --if-present",
+    "typecheck": "npm run typecheck -ws --if-present",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "quality": "npm run format:check && npm run lint && npm run build",
     "prisma:generate": "prisma generate --schema apps/api/prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema apps/api/prisma/schema.prisma",
     "prisma:seed": "prisma db seed --schema apps/api/prisma/schema.prisma"
@@ -22,6 +26,10 @@
     "seed": "node apps/api/prisma/seed.js"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@typescript-eslint/eslint-plugin": "^8.63.0",
+    "@typescript-eslint/parser": "^8.63.0",
+    "eslint": "^9.39.4",
     "prettier": "^3.3.3"
   },
   "engines": {

@@ -5,11 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import {
-  Prisma,
-  ToeicPart,
-  VocabularySetVisibility,
-} from "@prisma/client";
+import { Prisma, ToeicPart, VocabularySetVisibility } from "@prisma/client";
 import { randomBytes } from "node:crypto";
 import { AuthService } from "../auth/auth.service";
 import type { AuthenticatedUser } from "../auth/auth.types";
@@ -220,7 +216,9 @@ export class VocabularyManagementService {
     });
 
     if (!source) {
-      throw new NotFoundException("Không tìm thấy bộ từ công khai để sao chép.");
+      throw new NotFoundException(
+        "Không tìm thấy bộ từ công khai để sao chép.",
+      );
     }
 
     await this.authService.syncUser(user);
@@ -316,20 +314,8 @@ export class VocabularyManagementService {
       true,
     );
     const topic = this.parseText(values.topic, "Chủ đề", 0, 80, true);
-    const difficulty = this.parseText(
-      values.difficulty,
-      "Độ khó",
-      0,
-      40,
-      true,
-    );
-    const folderId = this.parseText(
-      values.folderId,
-      "Thư mục",
-      0,
-      100,
-      true,
-    );
+    const difficulty = this.parseText(values.difficulty, "Độ khó", 0, 40, true);
+    const folderId = this.parseText(values.folderId, "Thư mục", 0, 100, true);
     const visibility = this.parseVisibility(values.visibility);
     const part = this.parsePart(values.part);
     const terms = this.parseTerms(values.terms);
@@ -376,13 +362,7 @@ export class VocabularyManagementService {
           false,
         )!,
         ipa: this.parseText(raw.ipa, "IPA", 0, 120, true),
-        partOfSpeech: this.parseText(
-          raw.partOfSpeech,
-          "Từ loại",
-          0,
-          80,
-          true,
-        ),
+        partOfSpeech: this.parseText(raw.partOfSpeech, "Từ loại", 0, 80, true),
         exampleEn: this.parseText(
           raw.exampleEn,
           "Ví dụ tiếng Anh",
@@ -454,10 +434,7 @@ export class VocabularyManagementService {
     return normalized;
   }
 
-  private async assertFolderOwnership(
-    folderId: string | null,
-    userId: string,
-  ) {
+  private async assertFolderOwnership(folderId: string | null, userId: string) {
     if (!folderId) return;
     await this.findOwnedFolder(folderId, userId);
   }

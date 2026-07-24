@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   Accessibility,
   CalendarDays,
@@ -175,10 +176,13 @@ export function ProfileSettingsForm({
           <div className="relative mx-auto sm:mx-0">
             <span className="grid size-28 place-items-center overflow-hidden rounded-full border border-white/14 bg-[var(--accent)] text-3xl font-semibold text-[var(--accent-ink)] shadow-xl shadow-black/20">
               {profile.avatarUrl ? (
-                <img
+                <Image
                   className="size-full object-cover"
                   src={profile.avatarUrl}
                   alt={`Ảnh đại diện của ${profile.displayName ?? profile.email}`}
+                  width={112}
+                  height={112}
+                  unoptimized
                 />
               ) : (
                 initial
@@ -376,10 +380,7 @@ export function ProfileSettingsForm({
             <Accessibility className="size-5" aria-hidden="true" />
           </span>
           <div>
-            <h2
-              id="preference-settings-title"
-              className="text-xl font-bold"
-            >
+            <h2 id="preference-settings-title" className="text-xl font-bold">
               Ngôn ngữ, audio & accessibility
             </h2>
           </div>

@@ -8,7 +8,7 @@ const fallbackLessons = [
     slug: "part-2-question-response",
     description: "Demo listening lesson with audioUrl-ready questions.",
     skill: "LISTENING",
-    part: "PART_2"
+    part: "PART_2",
   },
   {
     id: "reading-part-5-demo",
@@ -16,8 +16,8 @@ const fallbackLessons = [
     slug: "part-5-incomplete-sentences",
     description: "Demo reading lesson for grammar and vocabulary practice.",
     skill: "READING",
-    part: "PART_5"
-  }
+    part: "PART_5",
+  },
 ];
 
 @Injectable()
@@ -31,10 +31,10 @@ export class LessonsService {
         include: {
           _count: {
             select: {
-              questions: true
-            }
-          }
-        }
+              questions: true,
+            },
+          },
+        },
       });
     } catch {
       return fallbackLessons;
@@ -46,8 +46,8 @@ export class LessonsService {
       return await this.prisma.lesson.findUnique({
         where: { slug },
         include: {
-          questions: true
-        }
+          questions: true,
+        },
       });
     } catch {
       return fallbackLessons.find((lesson) => lesson.slug === slug) ?? null;

@@ -914,9 +914,7 @@ export class VocabularyService {
     return vocabularySet;
   }
 
-  private accessibleSetWhere(
-    userId?: string,
-  ): Prisma.VocabularySetWhereInput {
+  private accessibleSetWhere(userId?: string): Prisma.VocabularySetWhereInput {
     return {
       isPublished: true,
       OR: [

@@ -7,7 +7,7 @@ const choices = [
   { id: "A", text: "The woman is reviewing a report." },
   { id: "B", text: "The woman is watering a plant." },
   { id: "C", text: "The woman is booking a flight." },
-  { id: "D", text: "The woman is opening a window." }
+  { id: "D", text: "The woman is opening a window." },
 ] as const;
 
 export function PracticeDemo() {
@@ -24,7 +24,12 @@ export function PracticeDemo() {
           <span className="practice-label">Part 2 demo</span>
           <h3>Question response</h3>
         </div>
-        <button className="icon-button" type="button" onClick={reset} title="Làm lại">
+        <button
+          className="icon-button"
+          type="button"
+          onClick={reset}
+          title="Làm lại"
+        >
           <RotateCcw size={18} aria-hidden="true" />
         </button>
       </div>

@@ -255,14 +255,14 @@ export function ReviewQueuePlayer({
             : "Lịch của bạn đã được cập nhật theo từng mức đánh giá vừa chọn."}
         </p>
         <div className="mt-7 flex flex-col justify-center gap-2 sm:flex-row">
-          <a
+          <Link
             href="/vocabulary/review"
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-[var(--accent-ink)]"
             style={{ color: "var(--accent-ink)" }}
           >
             Kiểm tra lượt tiếp theo
             <ArrowRight className="size-4" aria-hidden="true" />
-          </a>
+          </Link>
           <Link
             href="/vocabulary"
             className="inline-flex min-h-11 items-center justify-center rounded-full bg-white/8 px-5 text-sm font-semibold text-white/68 hover:bg-white/13 hover:text-white"

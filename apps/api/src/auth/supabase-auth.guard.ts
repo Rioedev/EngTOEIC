@@ -3,7 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   ServiceUnavailableException,
-  UnauthorizedException
+  UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from "jose";
@@ -23,7 +23,9 @@ export class SupabaseAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = this.readBearerToken(request.headers.authorization);
-    const supabaseUrl = this.config.get<string>("SUPABASE_URL")?.replace(/\/$/, "");
+    const supabaseUrl = this.config
+      .get<string>("SUPABASE_URL")
+      ?.replace(/\/$/, "");
     const jwksUrl = this.config.get<string>("SUPABASE_JWKS_URL");
 
     if (!supabaseUrl || !jwksUrl) {
@@ -34,19 +36,22 @@ export class SupabaseAuthGuard implements CanActivate {
       this.jwks ??= createRemoteJWKSet(new URL(jwksUrl));
       const { payload } = await jwtVerify(token, this.jwks, {
         audience: "authenticated",
-        issuer: `${supabaseUrl}/auth/v1`
+        issuer: `${supabaseUrl}/auth/v1`,
       });
       const claims = payload as SupabaseJwtPayload;
 
       if (!claims.sub || !claims.email) {
-        throw new UnauthorizedException("Token không chứa thông tin người dùng hợp lệ");
+        throw new UnauthorizedException(
+          "Token không chứa thông tin người dùng hợp lệ",
+        );
       }
 
       request.authUser = {
         id: claims.sub,
         email: claims.email,
-        displayName: claims.user_metadata?.full_name ?? claims.user_metadata?.name ?? null,
-        avatarUrl: claims.user_metadata?.avatar_url ?? null
+        displayName:
+          claims.user_metadata?.full_name ?? claims.user_metadata?.name ?? null,
+        avatarUrl: claims.user_metadata?.avatar_url ?? null,
       };
 
       return true;
@@ -55,7 +60,9 @@ export class SupabaseAuthGuard implements CanActivate {
         throw error;
       }
 
-      throw new UnauthorizedException("Access token không hợp lệ hoặc đã hết hạn");
+      throw new UnauthorizedException(
+        "Access token không hợp lệ hoặc đã hết hạn",
+      );
     }
   }
 

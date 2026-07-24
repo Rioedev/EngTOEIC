@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 
 @Injectable()
@@ -12,7 +17,7 @@ export class PrismaService
   async onModuleInit() {
     if (!this.hasDatabaseUrl) {
       this.logger.warn(
-        "DATABASE_URL is not set. Prisma connection is skipped until a real database is configured."
+        "DATABASE_URL is not set. Prisma connection is skipped until a real database is configured.",
       );
       return;
     }

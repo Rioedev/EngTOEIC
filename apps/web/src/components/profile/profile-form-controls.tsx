@@ -149,7 +149,8 @@ export function ThemedSelect({
     }
 
     document.addEventListener("pointerdown", closeOnOutsideClick);
-    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+    return () =>
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
   }, []);
 
   function openAndFocus(index = selectedIndex) {
@@ -306,10 +307,10 @@ function formatDateLabel(value: string | null) {
 function sameDay(first: Date | null, second: Date | null) {
   return Boolean(
     first &&
-      second &&
-      first.getFullYear() === second.getFullYear() &&
-      first.getMonth() === second.getMonth() &&
-      first.getDate() === second.getDate(),
+    second &&
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate(),
   );
 }
 
@@ -328,7 +329,8 @@ export function ThemedDatePicker({ id, value, onChange }: DatePickerProps) {
     }
 
     document.addEventListener("pointerdown", closeOnOutsideClick);
-    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+    return () =>
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
   }, []);
 
   const year = visibleMonth.getFullYear();
@@ -368,7 +370,10 @@ export function ThemedDatePicker({ id, value, onChange }: DatePickerProps) {
         <span className={selectedDate ? "text-white" : "text-white/34"}>
           {formatDateLabel(value)}
         </span>
-        <CalendarDays className="size-4 text-[var(--accent)]" aria-hidden="true" />
+        <CalendarDays
+          className="size-4 text-[var(--accent)]"
+          aria-hidden="true"
+        />
       </button>
 
       {open ? (
@@ -421,7 +426,11 @@ export function ThemedDatePicker({ id, value, onChange }: DatePickerProps) {
           </div>
           <div className="grid grid-cols-7 gap-1">
             {Array.from({ length: leadingBlanks }).map((_, index) => (
-              <span key={`blank-${index}`} className="size-9" aria-hidden="true" />
+              <span
+                key={`blank-${index}`}
+                className="size-9"
+                aria-hidden="true"
+              />
             ))}
             {Array.from({ length: daysInMonth }).map((_, index) => {
               const date = new Date(year, month, index + 1);

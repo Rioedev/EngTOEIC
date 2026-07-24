@@ -14,5 +14,5 @@ export const usePracticeStore = create<PracticeState>((set) => ({
   isSubmitted: false,
   selectChoice: (choice) => set({ selectedChoice: choice, isSubmitted: false }),
   submit: () => set({ isSubmitted: true }),
-  reset: () => set({ selectedChoice: null, isSubmitted: false })
+  reset: () => set({ selectedChoice: null, isSubmitted: false }),
 }));
