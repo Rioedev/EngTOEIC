@@ -6,6 +6,7 @@ import { LearningFrame } from "@/components/home/learning-frame";
 import { TimeAwareBackground } from "@/components/home/time-aware-background";
 import { VocabularyTestPlayer } from "@/components/vocabulary/vocabulary-test-player";
 import { getVocabularySet } from "@/lib/vocabulary";
+import { getVocabularySetForCurrentUser } from "@/lib/vocabulary-server";
 
 type TestPageProps = {
   params: Promise<{ setSlug: string }>;
@@ -29,7 +30,7 @@ export async function generateMetadata({
 
 export default async function TestPage({ params }: TestPageProps) {
   const { setSlug } = await params;
-  const { vocabularySet } = await getVocabularySet(setSlug);
+  const { vocabularySet } = await getVocabularySetForCurrentUser(setSlug);
 
   if (!vocabularySet) notFound();
 

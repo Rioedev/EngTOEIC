@@ -110,6 +110,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../src/app/vocabulary/manage/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/vocabulary/manage">> = Specific
+  const handler = {} as typeof import("../../src/app/vocabulary/manage/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../src/app/vocabulary/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/vocabulary">> = Specific

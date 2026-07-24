@@ -128,13 +128,13 @@ Tham khảo trải nghiệm: [Quizlet Study Modes](https://quizlet.com/en-gb/fea
 
 #### P1
 
-- [ ] `VOC-101` Tạo/sửa/xóa bộ từ cá nhân.
-- [ ] `VOC-102` Public/private/unlisted.
-- [ ] `VOC-103` Folder phân loại bộ từ.
-- [ ] `VOC-104` Sao chép bộ từ công khai.
-- [ ] `VOC-105` Import CSV/Excel hoặc dán danh sách từ.
-- [ ] `VOC-106` Export bộ từ cá nhân.
-- [ ] `VOC-107` Chia sẻ bằng URL.
+- [x] `VOC-101` Tạo/sửa/xóa bộ từ cá nhân.
+- [x] `VOC-102` Public/private/unlisted.
+- [x] `VOC-103` Folder phân loại bộ từ.
+- [x] `VOC-104` Sao chép bộ từ công khai.
+- [x] `VOC-105` Import CSV/Excel hoặc dán danh sách từ.
+- [x] `VOC-106` Export bộ từ cá nhân.
+- [x] `VOC-107` Chia sẻ bằng URL.
 
 ### 6.2. Dữ liệu một từ
 

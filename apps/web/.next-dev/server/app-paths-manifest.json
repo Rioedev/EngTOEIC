@@ -1,7 +1,7 @@
 {
   "/page": "app/page.js",
   "/vocabulary/page": "app/vocabulary/page.js",
-  "/profile/page": "app/profile/page.js",
   "/vocabulary/[setSlug]/page": "app/vocabulary/[setSlug]/page.js",
-  "/vocabulary/[setSlug]/test/page": "app/vocabulary/[setSlug]/test/page.js"
+  "/vocabulary/[setSlug]/test/page": "app/vocabulary/[setSlug]/test/page.js",
+  "/vocabulary/manage/page": "app/vocabulary/manage/page.js"
 }

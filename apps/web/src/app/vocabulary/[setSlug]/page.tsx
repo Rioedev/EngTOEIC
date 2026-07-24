@@ -15,6 +15,7 @@ import {
 import { LearningFrame } from "@/components/home/learning-frame";
 import { TimeAwareBackground } from "@/components/home/time-aware-background";
 import { getVocabularySet } from "@/lib/vocabulary";
+import { getVocabularySetForCurrentUser } from "@/lib/vocabulary-server";
 
 type VocabularyDetailPageProps = {
   params: Promise<{ setSlug: string }>;
@@ -44,7 +45,8 @@ export default async function VocabularyDetailPage({
   params,
 }: VocabularyDetailPageProps) {
   const { setSlug } = await params;
-  const { vocabularySet, source } = await getVocabularySet(setSlug);
+  const { vocabularySet, source } =
+    await getVocabularySetForCurrentUser(setSlug);
 
   if (!vocabularySet) {
     notFound();

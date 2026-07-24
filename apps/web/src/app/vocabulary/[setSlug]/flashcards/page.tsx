@@ -13,6 +13,7 @@ import {
   type VocabularyStudySession,
   type VocabularyTermProgress,
 } from "@/lib/vocabulary";
+import { getVocabularySetForCurrentUser } from "@/lib/vocabulary-server";
 
 type FlashcardsPageProps = {
   params: Promise<{ setSlug: string }>;
@@ -36,7 +37,8 @@ export async function generateMetadata({
 
 export default async function FlashcardsPage({ params }: FlashcardsPageProps) {
   const { setSlug } = await params;
-  const { vocabularySet, source } = await getVocabularySet(setSlug);
+  const { vocabularySet, source } =
+    await getVocabularySetForCurrentUser(setSlug);
 
   if (!vocabularySet) {
     notFound();

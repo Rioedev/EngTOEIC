@@ -11,9 +11,11 @@ import {
   Layers3,
   Search,
   Sparkles,
+  Settings2,
 } from "lucide-react";
 import { LearningFrame } from "@/components/home/learning-frame";
 import { TimeAwareBackground } from "@/components/home/time-aware-background";
+import { CopyVocabularyButton } from "@/components/vocabulary/copy-vocabulary-button";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -74,14 +76,19 @@ export default async function VocabularyPage({
     : "";
   const { response, source } = await getVocabularySets({ search, part });
   let reviewSchedule: VocabularyReviewScheduleResponse | null = null;
+  let isAuthenticated = false;
 
   if (source === "api" && isSupabaseConfigured()) {
     const supabase = await createClient();
     const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const {
       data: { session },
     } = await supabase.auth.getSession();
 
-    if (session) {
+    if (user && session) {
+      isAuthenticated = true;
       reviewSchedule = await getVocabularyReviewSchedule(session.access_token);
     }
   }
@@ -357,14 +364,27 @@ export default async function VocabularyPage({
                 Bộ từ đang có
               </h2>
             </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-white/52">
-              <Layers3 className="size-4" aria-hidden="true" />
-              {response.meta.total} bộ từ
-              {source === "demo" ? (
-                <span className="rounded-full bg-amber-300/14 px-2.5 py-1 text-amber-100">
-                  Dữ liệu demo
-                </span>
-              ) : null}
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Link
+                href={
+                  isAuthenticated
+                    ? "/vocabulary/manage"
+                    : "/login?next=/vocabulary/manage"
+                }
+                className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white/8 px-4 text-xs font-semibold text-white/68 transition hover:bg-white/13 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              >
+                <Settings2 className="size-4" aria-hidden="true" />
+                Bộ từ của tôi
+              </Link>
+              <div className="flex items-center gap-2 text-xs text-white/52">
+                <Layers3 className="size-4" aria-hidden="true" />
+                {response.meta.total} bộ từ
+                {source === "demo" ? (
+                  <span className="rounded-full bg-amber-300/14 px-2.5 py-1 text-amber-100">
+                    Dữ liệu demo
+                  </span>
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -404,14 +424,21 @@ export default async function VocabularyPage({
                       <BookOpenText className="size-4" aria-hidden="true" />
                       {set.termCount} từ
                     </span>
-                    <Link
-                      href={`/vocabulary/${set.slug}`}
-                      className="flex min-h-11 items-center gap-2 rounded-full bg-white/9 px-4 text-sm font-black text-white transition group-hover:bg-[var(--accent)] group-hover:text-[var(--accent-ink)]"
-                      aria-label={`Mở bộ từ ${set.title}`}
-                    >
-                      Mở bộ từ
-                      <ArrowRight className="size-4" aria-hidden="true" />
-                    </Link>
+                    <div className="flex items-center gap-1.5">
+                      <CopyVocabularyButton
+                        slug={set.slug}
+                        title={set.title}
+                        isAuthenticated={isAuthenticated}
+                      />
+                      <Link
+                        href={`/vocabulary/${set.slug}`}
+                        className="flex min-h-11 items-center gap-2 rounded-full bg-white/9 px-4 text-sm font-semibold text-white transition group-hover:bg-[var(--accent)] group-hover:text-[var(--accent-ink)]"
+                        aria-label={`Mở bộ từ ${set.title}`}
+                      >
+                        Mở bộ từ
+                        <ArrowRight className="size-4" aria-hidden="true" />
+                      </Link>
+                    </div>
                   </div>
                 </article>
               ))}

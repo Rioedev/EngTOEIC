@@ -40,6 +40,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/vocabulary/[setSlug]/test/page.js"
+    ],
+    "/vocabulary/manage/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/vocabulary/manage/page.js"
     ]
   }
 }
