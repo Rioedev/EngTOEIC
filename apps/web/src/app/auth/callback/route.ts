@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { serverApiRequest } from "@/lib/api/server-client";
 import { createClient } from "@/lib/supabase/server";
 
 function safeNextPath(value: string | null) {
@@ -38,21 +39,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const apiUrl =
-    process.env.API_URL ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:4000";
-
   try {
-    const syncResponse = await fetch(`${apiUrl.replace(/\/$/, "")}/auth/sync`, {
+    await serverApiRequest<unknown>("/auth/sync", {
       method: "POST",
-      headers: { Authorization: `Bearer ${data.session.access_token}` },
+      accessToken: data.session.access_token,
       cache: "no-store",
+      fallbackMessage: "Không thể đồng bộ hồ sơ",
     });
-
-    if (!syncResponse.ok) {
-      throw new Error(`Auth sync failed with status ${syncResponse.status}`);
-    }
   } catch (syncError) {
     console.error("Unable to sync Supabase user with API", syncError);
     await supabase.auth.signOut();

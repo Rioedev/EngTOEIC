@@ -5,32 +5,15 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import type {
+  VocabularySetMutationInput,
+  VocabularyTermMutationInput,
+} from "@engtoeic/shared";
 import { Prisma, ToeicPart, VocabularySetVisibility } from "@prisma/client";
 import { randomBytes } from "node:crypto";
 import { AuthService } from "../auth/auth.service";
 import type { AuthenticatedUser } from "../auth/auth.types";
 import { PrismaService } from "../prisma/prisma.service";
-
-type VocabularyTermInput = {
-  id?: unknown;
-  term?: unknown;
-  meaningVi?: unknown;
-  ipa?: unknown;
-  partOfSpeech?: unknown;
-  exampleEn?: unknown;
-  exampleVi?: unknown;
-};
-
-export type VocabularySetInput = {
-  title?: unknown;
-  description?: unknown;
-  topic?: unknown;
-  part?: unknown;
-  difficulty?: unknown;
-  visibility?: unknown;
-  folderId?: unknown;
-  terms?: unknown;
-};
 
 const editableTermSelect = {
   id: true,
@@ -99,7 +82,7 @@ export class VocabularyManagementService {
     return { ...vocabularySet, termCount: vocabularySet.terms.length };
   }
 
-  async createSet(values: VocabularySetInput, user: AuthenticatedUser) {
+  async createSet(values: VocabularySetMutationInput, user: AuthenticatedUser) {
     await this.authService.syncUser(user);
     const input = this.parseSetInput(values);
     await this.assertFolderOwnership(input.folderId, user.id);
@@ -132,7 +115,7 @@ export class VocabularyManagementService {
 
   async updateSet(
     id: string,
-    values: VocabularySetInput,
+    values: VocabularySetMutationInput,
     user: AuthenticatedUser,
   ) {
     const currentSet = await this.findOwnedSet(id, user.id);
@@ -304,7 +287,7 @@ export class VocabularyManagementService {
     return { deleted: true, id: folder.id };
   }
 
-  private parseSetInput(values: VocabularySetInput) {
+  private parseSetInput(values: VocabularySetMutationInput) {
     const title = this.parseText(values.title, "Tên bộ từ", 2, 120, false)!;
     const description = this.parseText(
       values.description,
@@ -344,7 +327,9 @@ export class VocabularyManagementService {
       if (!rawValue || typeof rawValue !== "object") {
         throw new BadRequestException(`Từ ở dòng ${index + 1} không hợp lệ.`);
       }
-      const raw = rawValue as VocabularyTermInput;
+      const raw = rawValue as Partial<
+        Record<keyof VocabularyTermMutationInput, unknown>
+      >;
       return {
         id: this.parseText(raw.id, "ID từ", 0, 100, true),
         term: this.parseText(

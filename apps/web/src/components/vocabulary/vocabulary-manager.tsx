@@ -21,12 +21,15 @@ import {
   X,
 } from "lucide-react";
 import { FormEvent, useMemo, useRef, useState } from "react";
+import type {
+  PersonalVocabularySet,
+  PersonalVocabularyTerm,
+} from "@engtoeic/shared";
 import { ThemedSelect } from "@/components/profile/profile-form-controls";
 import type {
   PersonalVocabularyLibrary,
   VocabularyFolder,
   VocabularySet,
-  VocabularyTerm,
 } from "@/lib/vocabulary";
 import {
   createPersonalVocabularySet,
@@ -89,7 +92,7 @@ const partOptions = [
   })),
 ];
 
-function editableTerm(term: VocabularyTerm): EditableVocabularyTerm {
+function editableTerm(term: PersonalVocabularyTerm): EditableVocabularyTerm {
   return {
     id: term.id,
     term: term.term,
@@ -101,7 +104,7 @@ function editableTerm(term: VocabularyTerm): EditableVocabularyTerm {
   };
 }
 
-function editableSet(vocabularySet: VocabularySet): EditorState {
+function editableSet(vocabularySet: PersonalVocabularySet): EditorState {
   return {
     id: vocabularySet.id,
     slug: vocabularySet.slug,
@@ -122,7 +125,7 @@ function escapeCsv(value: string) {
   return `"${value.replaceAll('"', '""')}"`;
 }
 
-function exportCsv(vocabularySet: VocabularySet) {
+function exportCsv(vocabularySet: PersonalVocabularySet) {
   const header = [
     "term",
     "meaningVi",

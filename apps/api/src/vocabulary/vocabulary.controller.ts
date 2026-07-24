@@ -9,43 +9,19 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import type {
+  VocabularyLearnSessionInput,
+  VocabularyMatchResultInput,
+  VocabularySetMutationInput,
+  VocabularyStudySessionInput,
+  VocabularyTermProgressInput,
+} from "@engtoeic/shared";
 import type { AuthenticatedUser } from "../auth/auth.types";
 import { CurrentUser } from "../auth/current-user.decorator";
 import { OptionalSupabaseAuthGuard } from "../auth/optional-supabase-auth.guard";
 import { SupabaseAuthGuard } from "../auth/supabase-auth.guard";
-import {
-  VocabularyManagementService,
-  type VocabularySetInput,
-} from "./vocabulary-management.service";
+import { VocabularyManagementService } from "./vocabulary-management.service";
 import { VocabularyService } from "./vocabulary.service";
-
-type UpdateTermProgressBody = {
-  status?: unknown;
-  correct?: unknown;
-  rating?: unknown;
-};
-
-type UpdateStudySessionBody = {
-  currentTermId?: unknown;
-  currentIndex?: unknown;
-};
-
-type UpdateLearnSessionBody = {
-  studyMode?: unknown;
-  targetCount?: unknown;
-  queueTermIds?: unknown;
-  currentIndex?: unknown;
-  correctCount?: unknown;
-  wrongCount?: unknown;
-  wrongTermIds?: unknown;
-};
-
-type CreateMatchResultBody = {
-  durationMs?: unknown;
-  moves?: unknown;
-  mistakes?: unknown;
-  pairCount?: unknown;
-};
 
 @Controller("vocabulary-sets")
 export class VocabularyController {
@@ -88,7 +64,7 @@ export class VocabularyController {
   @Post()
   @UseGuards(SupabaseAuthGuard)
   createSet(
-    @Body() body: VocabularySetInput,
+    @Body() body: VocabularySetMutationInput,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.vocabularyManagement.createSet(body, user);
@@ -98,7 +74,7 @@ export class VocabularyController {
   @UseGuards(SupabaseAuthGuard)
   updateSet(
     @Param("id") id: string,
-    @Body() body: VocabularySetInput,
+    @Body() body: VocabularySetMutationInput,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.vocabularyManagement.updateSet(id, body, user);
@@ -147,7 +123,7 @@ export class VocabularyController {
   @UseGuards(SupabaseAuthGuard)
   createMatchResult(
     @Param("slug") slug: string,
-    @Body() body: CreateMatchResultBody,
+    @Body() body: VocabularyMatchResultInput,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.vocabularyService.createMatchResult(slug, body, user);
@@ -157,7 +133,7 @@ export class VocabularyController {
   @UseGuards(SupabaseAuthGuard)
   updateStudySession(
     @Param("slug") slug: string,
-    @Body() body: UpdateStudySessionBody,
+    @Body() body: VocabularyStudySessionInput,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.vocabularyService.updateStudySession(
@@ -172,7 +148,7 @@ export class VocabularyController {
   @UseGuards(SupabaseAuthGuard)
   updateLearnSession(
     @Param("slug") slug: string,
-    @Body() body: UpdateLearnSessionBody,
+    @Body() body: VocabularyLearnSessionInput,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.vocabularyService.updateLearnSession(slug, body, user);
@@ -192,7 +168,7 @@ export class VocabularyController {
   updateTermProgress(
     @Param("slug") slug: string,
     @Param("termId") termId: string,
-    @Body() body: UpdateTermProgressBody,
+    @Body() body: VocabularyTermProgressInput,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.vocabularyService.updateTermProgress(

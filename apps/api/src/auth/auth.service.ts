@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
+import type { UpdateUserProfileInput } from "@engtoeic/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthenticatedUser } from "./auth.types";
 
@@ -21,21 +22,6 @@ const profileSelect = {
   createdAt: true,
   updatedAt: true,
 } as const;
-
-type ProfileValues = {
-  displayName?: unknown;
-  avatarUrl?: unknown;
-  targetScore?: unknown;
-  examDate?: unknown;
-  dailyStudyMinutes?: unknown;
-  language?: unknown;
-  audioAutoplay?: unknown;
-  audioVolume?: unknown;
-  audioPlaybackRate?: unknown;
-  reduceMotion?: unknown;
-  highContrast?: unknown;
-  largeText?: unknown;
-};
 
 @Injectable()
 export class AuthService {
@@ -61,7 +47,10 @@ export class AuthService {
     return this.syncUser(authUser);
   }
 
-  async updateProfile(values: ProfileValues, authUser: AuthenticatedUser) {
+  async updateProfile(
+    values: UpdateUserProfileInput,
+    authUser: AuthenticatedUser,
+  ) {
     await this.syncUser(authUser);
 
     return this.prisma.user.update({

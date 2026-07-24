@@ -1,235 +1,128 @@
-import { createClient } from "@/lib/supabase/client";
 import type {
   VocabularyLearnSession,
-  VocabularyLearnStudyMode,
+  VocabularyLearnSessionInput,
   VocabularyMatchLeaderboard,
+  VocabularyMatchResultInput,
   VocabularyProgressResponse,
   VocabularyProgressStatus,
   VocabularyReviewRating,
   VocabularyStudySession,
   VocabularyTermProgress,
-} from "@/lib/vocabulary";
+} from "@engtoeic/shared";
+import { authenticatedApiRequest } from "@/lib/api/browser-client";
 
-let supabaseClient: ReturnType<typeof createClient> | undefined;
+function vocabularySetPath(setSlug: string, suffix: string) {
+  return `/vocabulary-sets/${encodeURIComponent(setSlug)}${suffix}`;
+}
 
-function getApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(
-    /\/$/,
-    "",
+function termProgressPath(setSlug: string, termId: string) {
+  return vocabularySetPath(
+    setSlug,
+    `/terms/${encodeURIComponent(termId)}/progress`,
   );
 }
 
-function getSupabaseClient() {
-  supabaseClient ??= createClient();
-  return supabaseClient;
-}
-
-async function getAccessToken() {
-  const supabase = getSupabaseClient();
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
-
-  if (sessionError || !session) {
-    throw new Error("Phiên đăng nhập đã hết hạn.");
-  }
-
-  return session.access_token;
-}
-
-export async function loadVocabularyProgress(setSlug: string) {
-  const accessToken = await getAccessToken();
-  const response = await fetch(
-    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/progress`,
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      cache: "no-store",
-    },
+export function loadVocabularyProgress(setSlug: string) {
+  return authenticatedApiRequest<VocabularyProgressResponse>(
+    vocabularySetPath(setSlug, "/progress"),
+    { fallbackMessage: "Không thể tải tiến độ" },
   );
-
-  if (!response.ok) {
-    throw new Error(`Không thể tải tiến độ (${response.status}).`);
-  }
-
-  return (await response.json()) as VocabularyProgressResponse;
 }
 
-export async function saveVocabularyTermProgress(
+export function saveVocabularyTermProgress(
   setSlug: string,
   termId: string,
   status: VocabularyProgressStatus,
 ) {
-  const accessToken = await getAccessToken();
-
-  const response = await fetch(
-    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/terms/${encodeURIComponent(termId)}/progress`,
+  return authenticatedApiRequest<VocabularyTermProgress>(
+    termProgressPath(setSlug, termId),
     {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ status }),
+      fallbackMessage: "Không thể lưu tiến độ",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(`Không thể lưu tiến độ (${response.status}).`);
-  }
-
-  return (await response.json()) as VocabularyTermProgress;
 }
 
-export async function recordVocabularyTermAnswer(
+export function recordVocabularyTermAnswer(
   setSlug: string,
   termId: string,
   correct: boolean,
 ) {
-  const accessToken = await getAccessToken();
-  const response = await fetch(
-    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/terms/${encodeURIComponent(termId)}/progress`,
+  return authenticatedApiRequest<VocabularyTermProgress>(
+    termProgressPath(setSlug, termId),
     {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ correct }),
+      fallbackMessage: "Không thể lưu kết quả học",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(`Không thể lưu kết quả học (${response.status}).`);
-  }
-
-  return (await response.json()) as VocabularyTermProgress;
 }
 
-export async function rateVocabularyTerm(
+export function rateVocabularyTerm(
   setSlug: string,
   termId: string,
   rating: VocabularyReviewRating,
 ) {
-  const accessToken = await getAccessToken();
-  const response = await fetch(
-    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/terms/${encodeURIComponent(termId)}/progress`,
+  return authenticatedApiRequest<VocabularyTermProgress>(
+    termProgressPath(setSlug, termId),
     {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ rating }),
+      fallbackMessage: "Không thể lưu mức độ ghi nhớ",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(`Không thể lưu mức độ ghi nhớ (${response.status}).`);
-  }
-
-  return (await response.json()) as VocabularyTermProgress;
 }
 
-export async function saveVocabularyStudySession(
+export function saveVocabularyStudySession(
   setSlug: string,
   currentTermId: string,
   currentIndex: number,
 ) {
-  const accessToken = await getAccessToken();
-  const response = await fetch(
-    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/session`,
+  return authenticatedApiRequest<VocabularyStudySession>(
+    vocabularySetPath(setSlug, "/session"),
     {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ currentTermId, currentIndex }),
+      fallbackMessage: "Không thể lưu vị trí thẻ",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(`Không thể lưu vị trí thẻ (${response.status}).`);
-  }
-
-  return (await response.json()) as VocabularyStudySession;
 }
 
-export async function saveVocabularyLearnSession(
+export function saveVocabularyLearnSession(
   setSlug: string,
-  checkpoint: {
-    studyMode: Exclude<VocabularyLearnStudyMode, "match">;
-    targetCount: number;
-    queueTermIds: string[];
-    currentIndex: number;
-    correctCount: number;
-    wrongCount: number;
-    wrongTermIds: string[];
-  },
+  checkpoint: VocabularyLearnSessionInput,
 ) {
-  const accessToken = await getAccessToken();
-  const response = await fetch(
-    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/learn-session`,
+  return authenticatedApiRequest<VocabularyLearnSession>(
+    vocabularySetPath(setSlug, "/learn-session"),
     {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(checkpoint),
+      fallbackMessage: "Không thể lưu checkpoint Learn",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(`Không thể lưu checkpoint Learn (${response.status}).`);
-  }
-
-  return (await response.json()) as VocabularyLearnSession;
 }
 
-export async function clearVocabularyLearnSession(setSlug: string) {
-  const accessToken = await getAccessToken();
-  const response = await fetch(
-    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/learn-session`,
+export function clearVocabularyLearnSession(setSlug: string) {
+  return authenticatedApiRequest<{ cleared: boolean }>(
+    vocabularySetPath(setSlug, "/learn-session"),
     {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      fallbackMessage: "Không thể xóa checkpoint Learn",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(`Không thể xóa checkpoint Learn (${response.status}).`);
-  }
-
-  return (await response.json()) as { cleared: boolean };
 }
 
-export async function saveVocabularyMatchResult(
+export function saveVocabularyMatchResult(
   setSlug: string,
-  result: {
-    durationMs: number;
-    moves: number;
-    mistakes: number;
-    pairCount: number;
-  },
+  result: VocabularyMatchResultInput,
 ) {
-  const accessToken = await getAccessToken();
-  const response = await fetch(
-    `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(setSlug)}/match-results`,
+  return authenticatedApiRequest<VocabularyMatchLeaderboard>(
+    vocabularySetPath(setSlug, "/match-results"),
     {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(result),
+      fallbackMessage: "Không thể lưu thành tích Match",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(`Không thể lưu thành tích Match (${response.status}).`);
-  }
-
-  return (await response.json()) as VocabularyMatchLeaderboard;
 }

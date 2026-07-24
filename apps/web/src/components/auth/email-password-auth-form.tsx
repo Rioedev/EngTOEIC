@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
+import { browserApiRequest } from "@/lib/api/browser-client";
 import { createClient } from "@/lib/supabase/client";
 
 type AuthMode = "login" | "signup";
@@ -54,15 +55,13 @@ export function EmailPasswordAuthForm({
   }
 
   async function syncProfile(accessToken: string) {
-    const apiUrl = (
-      process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
-    ).replace(/\/$/, "");
-    const response = await fetch(`${apiUrl}/auth/sync`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-
-    if (!response.ok) {
+    try {
+      await browserApiRequest<unknown>("/auth/sync", {
+        method: "POST",
+        accessToken,
+        fallbackMessage: "Không thể đồng bộ hồ sơ",
+      });
+    } catch {
       throw new ProfileSyncError("Unable to sync the authenticated user.");
     }
   }

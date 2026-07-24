@@ -1,23 +1,9 @@
 import { Body, Controller, Get, Patch, Post, UseGuards } from "@nestjs/common";
+import type { UpdateUserProfileInput } from "@engtoeic/shared";
 import { AuthService } from "./auth.service";
 import type { AuthenticatedUser } from "./auth.types";
 import { CurrentUser } from "./current-user.decorator";
 import { SupabaseAuthGuard } from "./supabase-auth.guard";
-
-type UpdateProfileBody = {
-  displayName?: unknown;
-  avatarUrl?: unknown;
-  targetScore?: unknown;
-  examDate?: unknown;
-  dailyStudyMinutes?: unknown;
-  language?: unknown;
-  audioAutoplay?: unknown;
-  audioVolume?: unknown;
-  audioPlaybackRate?: unknown;
-  reduceMotion?: unknown;
-  highContrast?: unknown;
-  largeText?: unknown;
-};
 
 @Controller("auth")
 export class AuthController {
@@ -38,7 +24,7 @@ export class AuthController {
   @Patch("profile")
   @UseGuards(SupabaseAuthGuard)
   updateProfile(
-    @Body() body: UpdateProfileBody,
+    @Body() body: UpdateUserProfileInput,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.authService.updateProfile(body, user);

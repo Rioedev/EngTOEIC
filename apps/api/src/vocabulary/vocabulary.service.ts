@@ -3,6 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import type {
+  VocabularyLearnSessionInput,
+  VocabularyMatchResultInput,
+} from "@engtoeic/shared";
 import {
   Prisma,
   ToeicPart,
@@ -655,15 +659,7 @@ export class VocabularyService {
 
   async updateLearnSession(
     slug: string,
-    values: {
-      studyMode?: unknown;
-      targetCount?: unknown;
-      queueTermIds?: unknown;
-      currentIndex?: unknown;
-      correctCount?: unknown;
-      wrongCount?: unknown;
-      wrongTermIds?: unknown;
-    },
+    values: VocabularyLearnSessionInput,
     user: AuthenticatedUser,
   ) {
     const vocabularySet = await this.findPublishedSet(slug, user.id);
@@ -842,12 +838,7 @@ export class VocabularyService {
 
   async createMatchResult(
     slug: string,
-    values: {
-      durationMs?: unknown;
-      moves?: unknown;
-      mistakes?: unknown;
-      pairCount?: unknown;
-    },
+    values: VocabularyMatchResultInput,
     user: AuthenticatedUser,
   ) {
     const vocabularySet = await this.findPublishedSet(slug, user.id);

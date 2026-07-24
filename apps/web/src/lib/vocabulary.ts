@@ -1,203 +1,37 @@
-import { vocabularyDemo } from "@engtoeic/shared";
+import {
+  vocabularyDemo,
+  type PersonalVocabularyLibrary,
+  type VocabularyListResponse,
+  type VocabularyMatchLeaderboard,
+  type VocabularyProgressResponse,
+  type VocabularyReviewQueueResponse,
+  type VocabularyReviewScheduleResponse,
+  type VocabularySet,
+  type VocabularyTerm,
+} from "@engtoeic/shared";
+import { serverApiRequest } from "@/lib/api/server-client";
 
-export type VocabularyTerm = {
-  id: string;
-  term: string;
-  meaningVi: string;
-  ipa: string | null;
-  partOfSpeech: string | null;
-  audioUrl: string | null;
-  exampleEn: string | null;
-  exampleVi: string | null;
-  imageUrl: string | null;
-  collocations: string[];
-  synonyms: string[];
-  antonyms: string[];
-  sourceName: string | null;
-  sourceUrl: string | null;
-  sourceLicense: string | null;
-  sourceExternalId: string | null;
-  order: number;
-};
-
-export type VocabularySet = {
-  id: string;
-  title: string;
-  slug: string;
-  description: string | null;
-  topic: string | null;
-  part: string | null;
-  difficulty: string | null;
-  imageUrl: string | null;
-  isPublished: boolean;
-  visibility: "PUBLIC" | "PRIVATE" | "UNLISTED";
-  ownerId: string | null;
-  folderId: string | null;
-  copiedFromId: string | null;
-  folder?: {
-    id: string;
-    name: string;
-  } | null;
-  order: number;
-  termCount: number;
-  createdAt: string;
-  updatedAt: string;
-  terms?: VocabularyTerm[];
-};
-
-export type VocabularyFolder = {
-  id: string;
-  name: string;
-  order: number;
-  setCount: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type PersonalVocabularyLibrary = {
-  folders: VocabularyFolder[];
-  sets: VocabularySet[];
-};
-
-export type VocabularyProgressStatus =
-  "NEW" | "LEARNING" | "FAMILIAR" | "MASTERED";
-
-export type VocabularyReviewRating = "AGAIN" | "HARD" | "GOOD" | "EASY";
-
-export type VocabularyTermProgress = {
-  termId: string;
-  status: VocabularyProgressStatus;
-  lastRating: VocabularyReviewRating | null;
-  easeFactor: number;
-  intervalDays: number;
-  repetitionCount: number;
-  lapseCount: number;
-  reviewCount: number;
-  lastReviewedAt: string | null;
-  nextReviewAt: string | null;
-  updatedAt: string;
-  reviewAccepted?: boolean;
-  nextEligibleAt?: string | null;
-};
-
-export type VocabularyReviewScheduleItem = {
-  termId: string;
-  term: string;
-  meaningVi: string;
-  status: VocabularyProgressStatus;
-  nextReviewAt: string;
-  setSlug: string;
-  setTitle: string;
-};
-
-export type VocabularyReviewScheduleResponse = {
-  summary: {
-    scheduled: number;
-    dueNow: number;
-    dueNext7Days: number;
-    nextReviewAt: string | null;
-    retentionRate: number | null;
-    reviewedTerms: number;
-    totalReviews: number;
-    totalLapses: number;
-  };
-  items: VocabularyReviewScheduleItem[];
-};
-
-export type VocabularyReviewQueueItem = {
-  term: VocabularyTerm;
-  set: {
-    slug: string;
-    title: string;
-  };
-  progress: {
-    status: VocabularyProgressStatus;
-    lastRating: VocabularyReviewRating | null;
-    easeFactor: number;
-    intervalDays: number;
-    repetitionCount: number;
-    lapseCount: number;
-    reviewCount: number;
-    lastReviewedAt: string | null;
-    nextReviewAt: string;
-  };
-};
-
-export type VocabularyReviewQueueResponse = {
-  data: VocabularyReviewQueueItem[];
-  meta: {
-    total: number;
-    limit: number;
-    generatedAt: string;
-  };
-};
-
-export type VocabularyStudySession = {
-  currentTermId: string | null;
-  currentIndex: number;
-  lastStudiedAt: string;
-  updatedAt: string;
-};
-
-export type VocabularyLearnStudyMode =
-  "mixed" | "match" | "dictation" | "multiple-choice" | "write" | "true-false";
-
-export type VocabularyLearnSession = {
-  studyMode: VocabularyLearnStudyMode;
-  targetCount: number;
-  queueTermIds: string[];
-  currentIndex: number;
-  correctCount: number;
-  wrongCount: number;
-  wrongTermIds: string[];
-  lastStudiedAt: string;
-  updatedAt: string;
-};
-
-export type VocabularyProgressResponse = {
-  data: VocabularyTermProgress[];
-  session: VocabularyStudySession | null;
-  learnSession: VocabularyLearnSession | null;
-  summary: {
-    new: number;
-    known: number;
-    learning: number;
-    familiar: number;
-    mastered: number;
-    total: number;
-  };
-};
-
-export type VocabularyMatchResult = {
-  id: string;
-  rank: number;
-  durationMs: number;
-  moves: number;
-  mistakes: number;
-  pairCount: number;
-  createdAt: string;
-};
-
-export type VocabularyMatchLeaderboard = {
-  data: VocabularyMatchResult[];
-  summary: {
-    totalPlays: number;
-    bestDurationMs: number | null;
-    bestMoves: number | null;
-    lastPlayedAt: string | null;
-  };
-  latestResultId?: string;
-};
-
-type VocabularyListResponse = {
-  data: VocabularySet[];
-  meta: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-};
+export type {
+  PersonalVocabularyLibrary,
+  VocabularyFolder,
+  VocabularyLearnSession,
+  VocabularyLearnStudyMode,
+  VocabularyListResponse,
+  VocabularyMatchLeaderboard,
+  VocabularyMatchResult,
+  VocabularyProgressResponse,
+  VocabularyProgressStatus,
+  VocabularyReviewQueueItem,
+  VocabularyReviewQueueResponse,
+  VocabularyReviewRating,
+  VocabularyReviewScheduleItem,
+  VocabularyReviewScheduleResponse,
+  VocabularySet,
+  VocabularySetVisibility,
+  VocabularyStudySession,
+  VocabularyTerm,
+  VocabularyTermProgress,
+} from "@engtoeic/shared";
 
 export type VocabularyDataSource = "api" | "demo";
 
@@ -231,30 +65,15 @@ const demoSet: VocabularySet = {
   terms: demoTerms,
 };
 
-function getApiBaseUrl() {
-  return (
-    process.env.API_URL ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:4000"
-  ).replace(/\/$/, "");
-}
-
 async function requestApi<T>(path: string, accessToken?: string): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    headers: accessToken
-      ? { Authorization: `Bearer ${accessToken}` }
-      : undefined,
+  return serverApiRequest<T>(path, {
+    accessToken,
     ...(accessToken
       ? { cache: "no-store" as const }
       : { next: { revalidate: 60 } }),
-    signal: AbortSignal.timeout(3500),
+    fallbackMessage: "Không thể tải dữ liệu từ vựng",
+    timeoutMs: 3500,
   });
-
-  if (!response.ok) {
-    throw new Error(`Vocabulary API returned ${response.status}.`);
-  }
-
-  return (await response.json()) as T;
 }
 
 function matchesDemoSet(search?: string, part?: string) {
@@ -326,14 +145,15 @@ export async function getVocabularySet(slug: string, accessToken?: string) {
 
 export async function getPersonalVocabularyLibrary(accessToken: string) {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/vocabulary-sets/mine`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-
-    if (!response.ok) return null;
-    return (await response.json()) as PersonalVocabularyLibrary;
+    return await serverApiRequest<PersonalVocabularyLibrary>(
+      "/vocabulary-sets/mine",
+      {
+        accessToken,
+        fallbackMessage: "Không thể tải thư viện cá nhân",
+        timeoutMs: 5000,
+        cache: "no-store",
+      },
+    );
   } catch {
     return null;
   }
@@ -341,20 +161,10 @@ export async function getPersonalVocabularyLibrary(accessToken: string) {
 
 export async function getVocabularyProgress(slug: string, accessToken: string) {
   try {
-    const response = await fetch(
-      `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(slug)}/progress`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        cache: "no-store",
-        signal: AbortSignal.timeout(3500),
-      },
+    return await requestApi<VocabularyProgressResponse>(
+      `/vocabulary-sets/${encodeURIComponent(slug)}/progress`,
+      accessToken,
     );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return (await response.json()) as VocabularyProgressResponse;
   } catch {
     return null;
   }
@@ -365,20 +175,10 @@ export async function getVocabularyMatchResults(
   accessToken: string,
 ) {
   try {
-    const response = await fetch(
-      `${getApiBaseUrl()}/vocabulary-sets/${encodeURIComponent(slug)}/match-results`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        cache: "no-store",
-        signal: AbortSignal.timeout(3500),
-      },
+    return await requestApi<VocabularyMatchLeaderboard>(
+      `/vocabulary-sets/${encodeURIComponent(slug)}/match-results`,
+      accessToken,
     );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return (await response.json()) as VocabularyMatchLeaderboard;
   } catch {
     return null;
   }
@@ -386,20 +186,10 @@ export async function getVocabularyMatchResults(
 
 export async function getVocabularyReviewSchedule(accessToken: string) {
   try {
-    const response = await fetch(
-      `${getApiBaseUrl()}/vocabulary-sets/review-schedule`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        cache: "no-store",
-        signal: AbortSignal.timeout(3500),
-      },
+    return await requestApi<VocabularyReviewScheduleResponse>(
+      "/vocabulary-sets/review-schedule",
+      accessToken,
     );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return (await response.json()) as VocabularyReviewScheduleResponse;
   } catch {
     return null;
   }
@@ -410,20 +200,10 @@ export async function getVocabularyReviewQueue(
   limit = 20,
 ) {
   try {
-    const response = await fetch(
-      `${getApiBaseUrl()}/vocabulary/review-queue?limit=${limit}`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        cache: "no-store",
-        signal: AbortSignal.timeout(3500),
-      },
+    return await requestApi<VocabularyReviewQueueResponse>(
+      `/vocabulary/review-queue?limit=${limit}`,
+      accessToken,
     );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return (await response.json()) as VocabularyReviewQueueResponse;
   } catch {
     return null;
   }

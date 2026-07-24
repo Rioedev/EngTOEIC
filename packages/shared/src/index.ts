@@ -20,6 +20,45 @@ export type PracticeQuestion = {
   imageUrl?: string;
 };
 
+export type {
+  DeletedResourceResponse,
+  PersonalVocabularyLibrary,
+  PersonalVocabularySet,
+  PersonalVocabularyTerm,
+  VocabularyFolder,
+  VocabularyLearnSession,
+  VocabularyLearnSessionInput,
+  VocabularyLearnStudyMode,
+  VocabularyListResponse,
+  VocabularyMatchLeaderboard,
+  VocabularyMatchResult,
+  VocabularyMatchResultInput,
+  VocabularyProgressResponse,
+  VocabularyProgressStatus,
+  VocabularyReviewQueueItem,
+  VocabularyReviewQueueResponse,
+  VocabularyReviewRating,
+  VocabularyReviewScheduleItem,
+  VocabularyReviewScheduleResponse,
+  VocabularySet,
+  VocabularySetMutationInput,
+  VocabularySetVisibility,
+  VocabularyStudySession,
+  VocabularyStudySessionInput,
+  VocabularyTerm,
+  VocabularyTermMutationInput,
+  VocabularyTermProgress,
+  VocabularyTermProgressInput,
+} from "./vocabulary-contracts";
+
+export type {
+  AudioPlaybackRate,
+  UpdateUserProfileInput,
+  UserLanguage,
+  UserProfile,
+  UserRole,
+} from "./profile-contracts";
+
 export const toeicParts: Array<{
   id: ToeicPart;
   title: string;

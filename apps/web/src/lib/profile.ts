@@ -1,41 +1,16 @@
-export type UserProfile = {
-  id: string;
-  email: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  targetScore: number | null;
-  examDate: string | null;
-  dailyStudyMinutes: number;
-  language: "vi" | "en";
-  audioAutoplay: boolean;
-  audioVolume: number;
-  audioPlaybackRate: 0.75 | 1 | 1.25;
-  reduceMotion: boolean;
-  highContrast: boolean;
-  largeText: boolean;
-  role: "LEARNER" | "EDITOR" | "ADMIN";
-  createdAt: string;
-  updatedAt: string;
-};
+import type { UserProfile } from "@engtoeic/shared";
+import { serverApiRequest } from "@/lib/api/server-client";
 
-function getApiBaseUrl() {
-  return (
-    process.env.API_URL ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:4000"
-  ).replace(/\/$/, "");
-}
+export type { UserProfile } from "@engtoeic/shared";
 
 export async function getUserProfile(accessToken: string) {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/auth/profile`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+    return await serverApiRequest<UserProfile>("/auth/profile", {
+      accessToken,
       cache: "no-store",
-      signal: AbortSignal.timeout(5000),
+      timeoutMs: 5000,
+      fallbackMessage: "Không thể tải hồ sơ",
     });
-
-    if (!response.ok) return null;
-    return (await response.json()) as UserProfile;
   } catch {
     return null;
   }
