@@ -11,7 +11,9 @@ export function TimeAwareBackground() {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const syncPlayback = () => {
-      if (reducedMotion.matches) {
+      const userReducedMotion =
+        document.documentElement.dataset.reduceMotion === "true";
+      if (reducedMotion.matches || userReducedMotion) {
         video.pause();
         return;
       }
@@ -21,8 +23,12 @@ export function TimeAwareBackground() {
 
     syncPlayback();
     reducedMotion.addEventListener("change", syncPlayback);
+    window.addEventListener("engtoeic-preferences", syncPlayback);
 
-    return () => reducedMotion.removeEventListener("change", syncPlayback);
+    return () => {
+      reducedMotion.removeEventListener("change", syncPlayback);
+      window.removeEventListener("engtoeic-preferences", syncPlayback);
+    };
   }, []);
 
   return (

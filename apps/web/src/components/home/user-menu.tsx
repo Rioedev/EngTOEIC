@@ -1,14 +1,16 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { LogOut, UserRoundCog } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 type UserMenuProps = {
   displayName: string;
   email?: string;
+  avatarUrl?: string | null;
 };
 
-export function UserMenu({ displayName, email }: UserMenuProps) {
+export function UserMenu({ displayName, email, avatarUrl }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,20 +54,34 @@ export function UserMenu({ displayName, email }: UserMenuProps) {
         aria-controls={isOpen ? menuId : undefined}
         onClick={() => setIsOpen((open) => !open)}
       >
-        <span aria-hidden="true">{initial}</span>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" aria-hidden="true" />
+        ) : (
+          <span aria-hidden="true">{initial}</span>
+        )}
       </button>
 
       {isOpen ? (
         <div className="home-user-popover" id={menuId} role="menu">
           <div className="home-user-summary">
             <span className="home-user-summary-avatar" aria-hidden="true">
-              {initial}
+              {avatarUrl ? <img src={avatarUrl} alt="" /> : initial}
             </span>
             <div>
               <p className="home-user-summary-label">Tài khoản</p>
               <p className="home-user-summary-name">{email ?? displayName}</p>
             </div>
           </div>
+
+          <Link
+            className="home-user-profile-link"
+            href="/profile"
+            role="menuitem"
+            onClick={() => setIsOpen(false)}
+          >
+            <UserRoundCog size={17} aria-hidden="true" />
+            Hồ sơ & cài đặt
+          </Link>
 
           <form action="/auth/signout" method="post">
             <button className="home-user-signout" type="submit" role="menuitem">

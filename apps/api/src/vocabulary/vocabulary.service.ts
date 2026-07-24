@@ -8,6 +8,7 @@ import {
   ToeicPart,
   VocabularyProgressStatus,
   VocabularyReviewRating,
+  VocabularySetVisibility,
 } from "@prisma/client";
 import { AuthService } from "../auth/auth.service";
 import type { AuthenticatedUser } from "../auth/auth.types";
@@ -53,6 +54,7 @@ export class VocabularyService {
 
     const where: Prisma.VocabularySetWhereInput = {
       isPublished: true,
+      visibility: VocabularySetVisibility.PUBLIC,
       ...(part ? { part } : {}),
       ...(search
         ? {
@@ -94,11 +96,22 @@ export class VocabularyService {
     };
   }
 
-  async findOne(slug: string) {
+  async findOne(slug: string, userId?: string) {
     const vocabularySet = await this.prisma.vocabularySet.findFirst({
       where: {
         slug,
         isPublished: true,
+        OR: [
+          {
+            visibility: {
+              in: [
+                VocabularySetVisibility.PUBLIC,
+                VocabularySetVisibility.UNLISTED,
+              ],
+            },
+          },
+          ...(userId ? [{ ownerId: userId }] : []),
+        ],
       },
       include: {
         terms: {
@@ -123,7 +136,7 @@ export class VocabularyService {
     const scheduledWhere: Prisma.UserTermProgressWhereInput = {
       userId,
       nextReviewAt: { not: null },
-      term: { vocabularySet: { isPublished: true } },
+      term: { vocabularySet: this.accessibleSetWhere(userId) },
     };
     const [
       scheduledCount,
@@ -152,7 +165,7 @@ export class VocabularyService {
         where: {
           userId,
           reviewCount: { gt: 0 },
-          term: { vocabularySet: { isPublished: true } },
+          term: { vocabularySet: this.accessibleSetWhere(userId) },
         },
         _count: { _all: true },
         _sum: {
@@ -219,7 +232,7 @@ export class VocabularyService {
     const dueWhere: Prisma.UserTermProgressWhereInput = {
       userId,
       nextReviewAt: { lte: now },
-      term: { vocabularySet: { isPublished: true } },
+      term: { vocabularySet: this.accessibleSetWhere(userId) },
     };
     const [progressItems, total] = await this.prisma.$transaction([
       this.prisma.userTermProgress.findMany({
@@ -296,7 +309,7 @@ export class VocabularyService {
   }
 
   async findProgress(slug: string, userId: string) {
-    const vocabularySet = await this.findPublishedSet(slug);
+    const vocabularySet = await this.findPublishedSet(slug, userId);
     const checkpointCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const [progress, session, learnSession] = await this.prisma.$transaction([
       this.prisma.userTermProgress.findMany({
@@ -400,7 +413,10 @@ export class VocabularyService {
     const term = await this.prisma.vocabularyTerm.findFirst({
       where: {
         id: currentTermId,
-        vocabularySet: { slug, isPublished: true },
+        vocabularySet: {
+          slug,
+          ...this.accessibleSetWhere(user.id),
+        },
       },
       select: {
         id: true,
@@ -465,7 +481,7 @@ export class VocabularyService {
         id: termId,
         vocabularySet: {
           slug,
-          isPublished: true,
+          ...this.accessibleSetWhere(user.id),
         },
       },
       select: { id: true },
@@ -650,7 +666,7 @@ export class VocabularyService {
     },
     user: AuthenticatedUser,
   ) {
-    const vocabularySet = await this.findPublishedSet(slug);
+    const vocabularySet = await this.findPublishedSet(slug, user.id);
     const studyMode = this.parseLearnStudyMode(values.studyMode);
     const targetCount = this.parsePositiveNumber(
       values.targetCount,
@@ -766,7 +782,7 @@ export class VocabularyService {
   }
 
   async clearLearnSession(slug: string, user: AuthenticatedUser) {
-    const vocabularySet = await this.findPublishedSet(slug);
+    const vocabularySet = await this.findPublishedSet(slug, user.id);
     const result = await this.prisma.vocabularyLearnSession.deleteMany({
       where: {
         userId: user.id,
@@ -778,7 +794,7 @@ export class VocabularyService {
   }
 
   async findMatchResults(slug: string, userId: string) {
-    const vocabularySet = await this.findPublishedSet(slug);
+    const vocabularySet = await this.findPublishedSet(slug, userId);
     const where = {
       userId,
       vocabularySetId: vocabularySet.id,
@@ -834,7 +850,7 @@ export class VocabularyService {
     },
     user: AuthenticatedUser,
   ) {
-    const vocabularySet = await this.findPublishedSet(slug);
+    const vocabularySet = await this.findPublishedSet(slug, user.id);
     const durationMs = this.parsePositiveNumber(
       values.durationMs,
       "durationMs",
@@ -882,9 +898,9 @@ export class VocabularyService {
     };
   }
 
-  private async findPublishedSet(slug: string) {
+  private async findPublishedSet(slug: string, userId?: string) {
     const vocabularySet = await this.prisma.vocabularySet.findFirst({
-      where: { slug, isPublished: true },
+      where: { slug, ...this.accessibleSetWhere(userId) },
       select: {
         id: true,
         _count: { select: { terms: true } },
@@ -896,6 +912,25 @@ export class VocabularyService {
     }
 
     return vocabularySet;
+  }
+
+  private accessibleSetWhere(
+    userId?: string,
+  ): Prisma.VocabularySetWhereInput {
+    return {
+      isPublished: true,
+      OR: [
+        {
+          visibility: {
+            in: [
+              VocabularySetVisibility.PUBLIC,
+              VocabularySetVisibility.UNLISTED,
+            ],
+          },
+        },
+        ...(userId ? [{ ownerId: userId }] : []),
+      ],
+    };
   }
 
   private parseProgressStatus(value: unknown) {

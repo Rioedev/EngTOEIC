@@ -50,11 +50,27 @@ enum VocabularyReviewRating {
   EASY
 }
 
+enum VocabularySetVisibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+}
+
 model User {
   id                      String                   @id @db.Uuid
   email                   String                   @unique
   displayName             String?
   avatarUrl               String?
+  targetScore             Int?
+  examDate                DateTime?                @db.Date
+  dailyStudyMinutes       Int                      @default(30)
+  language                String                   @default("vi")
+  audioAutoplay           Boolean                  @default(true)
+  audioVolume             Int                      @default(100)
+  audioPlaybackRate       Float                    @default(1)
+  reduceMotion            Boolean                  @default(false)
+  highContrast            Boolean                  @default(false)
+  largeText               Boolean                  @default(false)
   role                    UserRole                 @default(LEARNER)
   attempts                TestAttempt[]
   savedVocabularySets     SavedVocabularySet[]
@@ -62,6 +78,8 @@ model User {
   vocabularySessions      VocabularyStudySession[]
   vocabularyLearnSessions VocabularyLearnSession[]
   vocabularyMatchResults  VocabularyMatchResult[]
+  ownedVocabularySets     VocabularySet[]          @relation("VocabularySetOwner")
+  vocabularyFolders       VocabularyFolder[]
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
 }
@@ -76,6 +94,14 @@ model VocabularySet {
   difficulty    String?
   imageUrl      String?
   isPublished   Boolean                  @default(false)
+  visibility    VocabularySetVisibility  @default(PUBLIC)
+  ownerId       String?                  @db.Uuid
+  owner         User?                    @relation("VocabularySetOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  folderId      String?
+  folder        VocabularyFolder?        @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  copiedFromId  String?
+  copiedFrom    VocabularySet?           @relation("VocabularySetCopies", fields: [copiedFromId], references: [id], onDelete: SetNull)
+  copies        VocabularySet[]          @relation("VocabularySetCopies")
   order         Int                      @default(0)
   terms         VocabularyTerm[]
   savedBy       SavedVocabularySet[]
@@ -86,7 +112,25 @@ model VocabularySet {
   updatedAt     DateTime                 @updatedAt
 
   @@index([isPublished, order])
+  @@index([visibility, isPublished, order])
+  @@index([ownerId, updatedAt])
+  @@index([folderId])
+  @@index([copiedFromId])
   @@index([part])
+}
+
+model VocabularyFolder {
+  id        String          @id @default(cuid())
+  userId    String          @db.Uuid
+  name      String
+  order     Int             @default(0)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sets      VocabularySet[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId, order])
 }
 
 model VocabularyTerm {

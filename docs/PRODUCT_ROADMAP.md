@@ -105,11 +105,11 @@ Sản phẩm lấy cảm hứng từ luồng sử dụng của các nền tảng
 
 ### P1
 
-- [ ] `AUTH-101` Hồ sơ cá nhân và avatar.
-- [ ] `AUTH-102` Mục tiêu điểm TOEIC.
-- [ ] `AUTH-103` Ngày thi dự kiến.
-- [ ] `AUTH-104` Mục tiêu số phút học mỗi ngày.
-- [ ] `AUTH-105` Cài đặt ngôn ngữ, audio và accessibility.
+- [x] `AUTH-101` Hồ sơ cá nhân và avatar — trang `/profile`, chỉnh tên, tải/gỡ avatar và đồng bộ menu tài khoản.
+- [x] `AUTH-102` Mục tiêu điểm TOEIC — lưu mục tiêu 10–990 theo tài khoản.
+- [x] `AUTH-103` Ngày thi dự kiến — lưu ngày thi để phục vụ lộ trình học.
+- [x] `AUTH-104` Mục tiêu số phút học mỗi ngày — tùy chỉnh 5–480 phút.
+- [x] `AUTH-105` Cài đặt ngôn ngữ, audio và accessibility — đồng bộ ngôn ngữ ưu tiên, autoplay/âm lượng/tốc độ, giảm chuyển động, tương phản cao và chữ lớn.
 
 ## 6. Module từ vựng kiểu Quizlet
 

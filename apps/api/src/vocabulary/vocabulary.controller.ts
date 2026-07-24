@@ -11,7 +11,12 @@ import {
 } from "@nestjs/common";
 import type { AuthenticatedUser } from "../auth/auth.types";
 import { CurrentUser } from "../auth/current-user.decorator";
+import { OptionalSupabaseAuthGuard } from "../auth/optional-supabase-auth.guard";
 import { SupabaseAuthGuard } from "../auth/supabase-auth.guard";
+import {
+  VocabularyManagementService,
+  type VocabularySetInput,
+} from "./vocabulary-management.service";
 import { VocabularyService } from "./vocabulary.service";
 
 type UpdateTermProgressBody = {
@@ -44,7 +49,10 @@ type CreateMatchResultBody = {
 
 @Controller("vocabulary-sets")
 export class VocabularyController {
-  constructor(private readonly vocabularyService: VocabularyService) {}
+  constructor(
+    private readonly vocabularyService: VocabularyService,
+    private readonly vocabularyManagement: VocabularyManagementService,
+  ) {}
 
   @Get()
   findAll(
@@ -62,9 +70,62 @@ export class VocabularyController {
     return this.vocabularyService.findReviewSchedule(user.id);
   }
 
+  @Get("mine")
+  @UseGuards(SupabaseAuthGuard)
+  findMine(@CurrentUser() user: AuthenticatedUser) {
+    return this.vocabularyManagement.findMine(user);
+  }
+
+  @Get("mine/:id")
+  @UseGuards(SupabaseAuthGuard)
+  findMineById(
+    @Param("id") id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.vocabularyManagement.findMineById(id, user.id);
+  }
+
+  @Post()
+  @UseGuards(SupabaseAuthGuard)
+  createSet(
+    @Body() body: VocabularySetInput,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.vocabularyManagement.createSet(body, user);
+  }
+
+  @Patch(":id")
+  @UseGuards(SupabaseAuthGuard)
+  updateSet(
+    @Param("id") id: string,
+    @Body() body: VocabularySetInput,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.vocabularyManagement.updateSet(id, body, user);
+  }
+
+  @Delete(":id")
+  @UseGuards(SupabaseAuthGuard)
+  deleteSet(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.vocabularyManagement.deleteSet(id, user.id);
+  }
+
+  @Post(":slug/copy")
+  @UseGuards(SupabaseAuthGuard)
+  copySet(
+    @Param("slug") slug: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.vocabularyManagement.copyPublicSet(slug, user);
+  }
+
   @Get(":slug")
-  findOne(@Param("slug") slug: string) {
-    return this.vocabularyService.findOne(slug);
+  @UseGuards(OptionalSupabaseAuthGuard)
+  findOne(
+    @Param("slug") slug: string,
+    @CurrentUser() user?: AuthenticatedUser,
+  ) {
+    return this.vocabularyService.findOne(slug, user?.id);
   }
 
   @Get(":slug/progress")

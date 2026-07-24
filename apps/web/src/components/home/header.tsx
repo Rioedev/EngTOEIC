@@ -3,6 +3,8 @@ import Link from "next/link";
 import { LogIn } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
+import { getUserProfile } from "@/lib/profile";
+import { PreferenceHydrator } from "@/components/profile/preference-hydrator";
 import { headerActions } from "./home-data";
 import { ThemeCustomizer } from "./theme-customizer";
 import { UserMenu } from "./user-menu";
@@ -10,20 +12,37 @@ import { UserMenu } from "./user-menu";
 export async function Header() {
   let user: {
     email?: string;
-    user_metadata?: { full_name?: string; name?: string };
+    user_metadata?: {
+      avatar_url?: string;
+      full_name?: string;
+      name?: string;
+    };
   } | null = null;
+  let profile = null;
 
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
+    const {
+      data: { user: verifiedUser },
+    } = await supabase.auth.getUser();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    user = verifiedUser;
+    if (verifiedUser && session) {
+      profile = await getUserProfile(session.access_token);
+    }
   }
 
   const displayName =
-    user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? user?.email;
+    profile?.displayName ??
+    user?.user_metadata?.full_name ??
+    user?.user_metadata?.name ??
+    user?.email;
 
   return (
     <header className="home-header">
+      <PreferenceHydrator profile={profile} />
       <Link className="home-brand" href="/" aria-label="Trang chủ EngTOEIC">
         <span className="home-brand-mark" aria-hidden="true">
           <Image
@@ -55,6 +74,9 @@ export async function Header() {
           <UserMenu
             displayName={displayName ?? "Người học"}
             email={user.email}
+            avatarUrl={
+              profile?.avatarUrl ?? user.user_metadata?.avatar_url ?? null
+            }
           />
         ) : (
           <Link className="home-auth-control" href="/login">

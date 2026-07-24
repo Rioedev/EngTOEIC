@@ -18,6 +18,10 @@ import type {
   VocabularyReviewRating,
 } from "@/lib/vocabulary";
 import { rateVocabularyTerm } from "@/lib/vocabulary-progress-client";
+import {
+  getAudioPreferences,
+  playVocabularyAudio,
+} from "@/lib/user-preferences";
 
 type ReviewQueuePlayerProps = {
   initialQueue: VocabularyReviewQueueItem[];
@@ -80,8 +84,7 @@ export function ReviewQueuePlayer({
 
   const speakTerm = useCallback((item: VocabularyReviewQueueItem) => {
     if (item.term.audioUrl) {
-      const audio = new Audio(item.term.audioUrl);
-      void audio.play().catch(() => undefined);
+      void playVocabularyAudio(item.term.audioUrl).catch(() => undefined);
       return;
     }
 
@@ -93,7 +96,9 @@ export function ReviewQueuePlayer({
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(item.term.term);
     utterance.lang = "en-US";
-    utterance.rate = 0.9;
+    const preferences = getAudioPreferences();
+    utterance.rate = preferences.playbackRate;
+    utterance.volume = preferences.volume;
     window.speechSynthesis.speak(utterance);
   }, []);
 

@@ -26,6 +26,10 @@ import {
   rateVocabularyTerm,
   saveVocabularyStudySession,
 } from "@/lib/vocabulary-progress-client";
+import {
+  getAudioPreferences,
+  playVocabularyAudio,
+} from "@/lib/user-preferences";
 
 type FlashcardPlayerProps = {
   terms: VocabularyTerm[];
@@ -208,8 +212,7 @@ export function FlashcardPlayer({
 
   const speakTerm = useCallback((term: VocabularyTerm) => {
     if (term.audioUrl) {
-      const audio = new Audio(term.audioUrl);
-      void audio.play().catch(() => undefined);
+      void playVocabularyAudio(term.audioUrl).catch(() => undefined);
       return;
     }
 
@@ -221,8 +224,20 @@ export function FlashcardPlayer({
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(term.term);
     utterance.lang = "en-US";
-    utterance.rate = 0.9;
+    const preferences = getAudioPreferences();
+    utterance.rate = preferences.playbackRate;
+    utterance.volume = preferences.volume;
     window.speechSynthesis.speak(utterance);
+  }, []);
+
+  useEffect(() => {
+    const syncAudioPreference = () => {
+      setAutoSpeak(getAudioPreferences().autoplay);
+    };
+    syncAudioPreference();
+    window.addEventListener("engtoeic-preferences", syncAudioPreference);
+    return () =>
+      window.removeEventListener("engtoeic-preferences", syncAudioPreference);
   }, []);
 
   const showCard = useCallback(

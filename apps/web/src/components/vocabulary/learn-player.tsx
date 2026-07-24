@@ -40,6 +40,10 @@ import {
   saveVocabularyLearnSession,
   saveVocabularyMatchResult,
 } from "@/lib/vocabulary-progress-client";
+import {
+  getAudioPreferences,
+  playVocabularyAudio,
+} from "@/lib/user-preferences";
 
 type LearnPlayerProps = {
   terms: VocabularyTerm[];
@@ -1126,10 +1130,9 @@ export function LearnPlayer({
   const speakCurrentTerm = useCallback(() => {
     if (!currentTerm) return;
     if (currentTerm.audioUrl) {
-      const audio = new Audio(currentTerm.audioUrl);
-      void audio
-        .play()
-        .catch(() => setAnnouncement("Chưa thể phát audio của từ này."));
+      void playVocabularyAudio(currentTerm.audioUrl).catch(() =>
+        setAnnouncement("Chưa thể phát audio của từ này."),
+      );
       return;
     }
     if (!("speechSynthesis" in window)) {
@@ -1139,9 +1142,23 @@ export function LearnPlayer({
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(currentTerm.term);
     utterance.lang = "en-US";
-    utterance.rate = 0.88;
+    const preferences = getAudioPreferences();
+    utterance.rate = preferences.playbackRate;
+    utterance.volume = preferences.volume;
     window.speechSynthesis.speak(utterance);
   }, [currentTerm]);
+
+  useEffect(() => {
+    if (
+      !started ||
+      !currentTerm ||
+      (mode !== "listen" && mode !== "dictation") ||
+      !getAudioPreferences().autoplay
+    ) {
+      return;
+    }
+    speakCurrentTerm();
+  }, [currentIndex, currentTerm, mode, speakCurrentTerm, started]);
 
   if (!orderedTerms.length) {
     return (

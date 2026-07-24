@@ -30,11 +30,33 @@ export type VocabularySet = {
   difficulty: string | null;
   imageUrl: string | null;
   isPublished: boolean;
+  visibility: "PUBLIC" | "PRIVATE" | "UNLISTED";
+  ownerId: string | null;
+  folderId: string | null;
+  copiedFromId: string | null;
+  folder?: {
+    id: string;
+    name: string;
+  } | null;
   order: number;
   termCount: number;
   createdAt: string;
   updatedAt: string;
   terms?: VocabularyTerm[];
+};
+
+export type VocabularyFolder = {
+  id: string;
+  name: string;
+  order: number;
+  setCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PersonalVocabularyLibrary = {
+  folders: VocabularyFolder[];
+  sets: VocabularySet[];
 };
 
 export type VocabularyProgressStatus =
@@ -199,6 +221,10 @@ const demoSet: VocabularySet = {
   id: "demo-toeic-office-basics",
   ...vocabularyDemo.set,
   imageUrl: null,
+  visibility: "PUBLIC",
+  ownerId: null,
+  folderId: null,
+  copiedFromId: null,
   termCount: demoTerms.length,
   createdAt: demoTimestamp,
   updatedAt: demoTimestamp,
@@ -213,9 +239,14 @@ function getApiBaseUrl() {
   ).replace(/\/$/, "");
 }
 
-async function requestApi<T>(path: string): Promise<T> {
+async function requestApi<T>(path: string, accessToken?: string): Promise<T> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    next: { revalidate: 60 },
+    headers: accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : undefined,
+    ...(accessToken
+      ? { cache: "no-store" as const }
+      : { next: { revalidate: 60 } }),
     signal: AbortSignal.timeout(3500),
   });
 
@@ -276,11 +307,12 @@ export async function getVocabularySets(params?: {
   }
 }
 
-export async function getVocabularySet(slug: string) {
+export async function getVocabularySet(slug: string, accessToken?: string) {
   try {
     return {
       vocabularySet: await requestApi<VocabularySet>(
         `/vocabulary-sets/${encodeURIComponent(slug)}`,
+        accessToken,
       ),
       source: "api" as const,
     };
@@ -289,6 +321,21 @@ export async function getVocabularySet(slug: string) {
       vocabularySet: slug === demoSet.slug ? demoSet : null,
       source: "demo" as const,
     };
+  }
+}
+
+export async function getPersonalVocabularyLibrary(accessToken: string) {
+  try {
+    const response = await fetch(`${getApiBaseUrl()}/vocabulary-sets/mine`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) return null;
+    return (await response.json()) as PersonalVocabularyLibrary;
+  } catch {
+    return null;
   }
 }
 
