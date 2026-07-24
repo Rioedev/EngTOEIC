@@ -1,3 +1,5 @@
 {
-  "/vocabulary/page": "app/vocabulary/page.js"
+  "/vocabulary/page": "app/vocabulary/page.js",
+  "/vocabulary/manage/page": "app/vocabulary/manage/page.js",
+  "/page": "app/page.js"
 }

@@ -4,5 +4,15 @@
     "files": [
       "static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js"
     ]
+  },
+  "components\\vocabulary\\vocabulary-manager.tsx -> @/lib/vocabulary-management-client": {
+    "id": "components\\vocabulary\\vocabulary-manager.tsx -> @/lib/vocabulary-management-client",
+    "files": []
+  },
+  "components\\vocabulary\\vocabulary-manager.tsx -> exceljs": {
+    "id": "components\\vocabulary\\vocabulary-manager.tsx -> exceljs",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_exceljs_dist_exceljs_min_js.js"
+    ]
   }
 }

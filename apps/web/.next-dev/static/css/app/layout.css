@@ -405,6 +405,24 @@
   .col-span-2 {
     grid-column: span 2 / span 2;
   }
+  .\!container {
+    width: 100% !important;
+    @media (width >= 40rem) {
+      max-width: 40rem !important;
+    }
+    @media (width >= 48rem) {
+      max-width: 48rem !important;
+    }
+    @media (width >= 64rem) {
+      max-width: 64rem !important;
+    }
+    @media (width >= 80rem) {
+      max-width: 80rem !important;
+    }
+    @media (width >= 96rem) {
+      max-width: 96rem !important;
+    }
+  }
   .container {
     width: 100%;
     @media (width >= 40rem) {
@@ -755,6 +773,9 @@
   .flex-shrink {
     flex-shrink: 1;
   }
+  .grow {
+    flex-grow: 1;
+  }
   .border-collapse {
     border-collapse: collapse;
   }
@@ -944,6 +965,9 @@
   }
   .overflow-y-auto {
     overflow-y: auto;
+  }
+  .rounded {
+    border-radius: 0.25rem;
   }
   .rounded-2xl {
     border-radius: var(--radius-2xl);
@@ -2156,6 +2180,9 @@
   }
   .\[perspective\:1400px\] {
     perspective: 1400px;
+  }
+  .\[tl\:br\] {
+    tl: br;
   }
   .\[transform-style\:preserve-3d\] {
     transform-style: preserve-3d;
